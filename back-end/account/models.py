@@ -3,9 +3,6 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-# ---------------------------
-# Custom User Manager
-# ---------------------------
 class CustomUserManager(BaseUserManager):
     """Custom manager where email is the unique identifier"""
     def create_user(self, email, password=None, **extra_fields):
@@ -29,9 +26,6 @@ class CustomUserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
-# ---------------------------
-# Custom User
-# ---------------------------
 class CustomUser(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # UUID primary key
     username = None
@@ -45,9 +39,6 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.email
 
-# ---------------------------
-# Profile
-# ---------------------------
 class Profile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # UUID primary key
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='profile')
