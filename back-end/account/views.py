@@ -20,6 +20,16 @@ from django.utils.encoding import force_bytes, force_str
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from .models import CustomUser
+from django.conf import settings
+
+
+
 class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -114,3 +124,24 @@ class ResetPasswordView(APIView):
             return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception:
             return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+
+
+
+
+class GoogleLoginView(APIView):
+    def post(self, request):
+        token = request.data.get('token') 
+        try:
+            idinfo = id_token.verify_oauth2_token(token, requests.Request(), settings.GOOGLE_CLIENT_ID)
+            email = idinfo['email']
+
+            user, created = CustomUser.objects.get_or_create(email=email)
+            if created:
+                user.is_active = True
+                user.save()
+            return Response({"message": f"Logged in as {email}"}, status=status.HTTP_200_OK)
+        except ValueError:
+            return Response({"error": "Invalid Google token"}, status=status.HTTP_400_BAD_REQUEST)
+
