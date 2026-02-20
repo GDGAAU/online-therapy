@@ -118,3 +118,16 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 AUTH_USER_MODEL = 'account.CustomUser'
+
+
+
+
+import os
+from pathlib import Path
+from dotenv import load_dotenv  
+
+load_dotenv()  
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+
+
