@@ -27,6 +27,7 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from .models import CustomUser
 from django.conf import settings
+from drf_spectacular.utils import extend_schema
 
 
 
@@ -91,6 +92,13 @@ class VerifyEmailView(APIView):
             return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
 
 class ForgotPasswordView(APIView):
+    @extend_schema(
+        request=ForgotPasswordSerializer,
+        responses={200: None},
+        summary="Request password reset",
+        description="Send password reset email to user"
+    )
+    
     def post(self, request):
         serializer = ForgotPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
