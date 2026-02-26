@@ -1,11 +1,14 @@
 <script>
-  import '../app.css';
-  import Navbar from '$lib/components/layout/Navbar.svelte';
-  import Footer from '$lib/components/layout/Footer.svelte';
+  import "../app.css";
+  export let data;
 </script>
 
-<Navbar />
+<svelte:head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</svelte:head>
+
 <main>
-  <slot />  <!-- Your page content (home, login, etc.) will appear here -->
+  <slot />
 </main>
-<Footer />
+
+<h1 class="bg-sky-500"> howooooo</h1>
