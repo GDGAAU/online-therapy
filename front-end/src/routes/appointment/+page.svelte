@@ -7,7 +7,7 @@
   let filters = ["All","Today", "Completed", "Pending", "Cancelled"];
   let activeFilter = "All";
 
-  // 🔎 Search
+  // Search
   let searchQuery = "";
 
   // Appointments
@@ -64,7 +64,7 @@
     }
   ];
 
-  // 🔥 FILTER + SEARCH COMBINED
+  // FILTER + SEARCH COMBINED
   $: filteredAppointments = appointments
     .filter(a =>
       activeFilter === "All" ||
@@ -100,7 +100,7 @@
 </script>
 
 <!--HEADER -->
-<div class="flex items-center justify-between px-4 py-3 bg-white shadow">
+<div class="flex items-center justify-between px-4 py-3 bg-white">
   <FontAwesomeIcon icon={faBars} class="text-xl text-gray-700 cursor-pointer hover:text-gray-900" />
   <FontAwesomeIcon icon={faBell} class="text-xl text-gray-700 cursor-pointer hover:text-gray-900" />
 </div>
