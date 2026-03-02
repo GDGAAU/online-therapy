@@ -1,6 +1,7 @@
 <script>
   import { FontAwesomeIcon } from "@fortawesome/svelte-fontawesome";
   import { faBars, faBell, faAngleLeft, faClock, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+  import { goto } from '$app/navigation';
   import { onMount } from "svelte";
 
   // Filters
@@ -96,6 +97,11 @@
     } else {
       alert(`${btn} clicked for ${appt.doctor}`);
     }
+  }
+
+  // SvelteKit navigation to Book Appointment page
+  function goToBookPage() {
+    goto('/book-appointment');
   }
 </script>
 
@@ -205,7 +211,10 @@
 
 <!-- PLUS BUTTON -->
 <div class="fixed bottom-6 right-6">
-  <button class="flex items-center space-x-2 bg-blue-500 text-white px-4 py-3 rounded-full shadow-lg" on:click={() => alert("Book Now clicked!")}>
+  <button
+    class="flex items-center space-x-2 bg-blue-500 text-white px-4 py-3 rounded-full shadow-lg"
+    on:click={goToBookPage} 
+  >
     <span class="text-xl font-bold">+</span>
     <span>Book Now</span>
   </button>
