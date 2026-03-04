@@ -12,28 +12,39 @@
             Our Latest Blogs
         </h1>
         <div
-            class="py-8 md:py-10 mx-auto max-w-7xl px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10"
+            class="py-8 md:py-10 mx-auto max-w-7xl px-4 grid grid-cols-1 md:grid-cols-2 gap-10"
         >
             {#each blogs as blog (blog.id)}
                 <Card.Root
-                    class="overflow-hidden shadow-sm hover:shadow-md transition-shadow border-slate-100 group"
+                    class="overflow-hidden shadow-sm hover:shadow-md transition-shadow border-slate-100 group pt-0"
                 >
-                    <div class="overflow-hidden bg-slate-50">
+                    <div class="overflow-hidden rounded-t-2xl">
                         <img
                             src={blog.image}
                             alt={blog.title}
-                            class="aspect-square w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            class="aspect-[16/9] w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                     </div>
-                    <h1>
-                        {blog.title}
-                    </h1>
-                    <p
-                        class="text-lg md:text-xl font-semibold text-[#3870FF] leading-tight"
-                    >
-                        {blog.description}
-                    </p>
-                    <Card.Footer></Card.Footer>
+                    <div>
+                        <h3 class="text-xl font-semibold px-4 mb-2 text-balance">
+                            {blog.title}
+                        </h3>
+                        <p
+                            class="text-base md:text-lg leading-relaxed text-slate-600 text-pretty px-4 line-clamp-2"
+                        >
+                            {blog.description}
+                        </p>
+                        <div class="px-4">
+                            <Button
+                                variant="outline"
+                                class="text-md py-5 my-6 rounded-full border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white cursor-pointer"
+                            >
+                                Learn More <i
+                                    class="fa-solid fa-arrow-right ml-2"
+                                ></i>
+                            </Button>
+                        </div>
+                    </div>
                 </Card.Root>
             {/each}
         </div>

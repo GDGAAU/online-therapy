@@ -9,7 +9,7 @@
     >
         {#each doctors as doctor (doctor.id)}
             <Card.Root
-                class="overflow-hidden shadow-sm hover:shadow-md transition-shadow border-slate-100 group"
+                class="overflow-hidden shadow-sm hover:shadow-md transition-shadow border-slate-100 group pt-0"
             >
                     <div class="overflow-hidden bg-slate-50">
                     <img
