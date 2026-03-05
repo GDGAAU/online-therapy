@@ -5,9 +5,7 @@
 </script>
 
 <section class="py-[.5rem] md:py-[1rem]">
-    <!-- content-wrapper -->
     <div class="mx-auto max-w-7xl px-4">
-        <!-- nav -->
         <nav class="mb-[.5rem] md:mb-[1rem]">
             <div class="flex items-center gap-2">
                 <img
@@ -20,9 +18,7 @@
                 >
             </div>
         </nav>
-        <!-- hero and card wrapper -->
         <div class="relative">
-            <!-- image-container -->
             <div class="w-full overflow-hidden h-[350px] md:h-[550px]">
                 <img
                     src="/images/hero.png"
@@ -30,7 +26,8 @@
                     class="w-full w-full h-full object-cover"
                 />
             </div>
-            <!-- floating-card -->
+
+
             <div
                 class="w-[90%] md:w-full max-w-xl mx-auto relative mt-[-80px] md:mt-0 md:absolute md:-bottom-20 md:left-1/2 md:-translate-x-1/2"
             >
@@ -62,6 +59,8 @@
                     </Card.Footer>
                 </Card.Root>
             </div>
+
+            
         </div>
     </div>
 </section>

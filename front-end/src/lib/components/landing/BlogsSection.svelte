@@ -26,7 +26,9 @@
                         />
                     </div>
                     <div>
-                        <h3 class="text-xl font-semibold px-4 mb-2 text-balance">
+                        <h3
+                            class="text-xl font-semibold px-4 mb-2 text-balance"
+                        >
                             {blog.title}
                         </h3>
                         <p
@@ -35,14 +37,16 @@
                             {blog.description}
                         </p>
                         <div class="px-4">
-                            <Button
-                                variant="outline"
-                                class="text-md py-5 my-6 rounded-full border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white cursor-pointer"
+                            <a href="/blog/{blog.title}">
+                                <Button
+                                    variant="outline"
+                                    class="text-md py-5 my-6 rounded-full border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white cursor-pointer"
+                                >
+                                    Learn More <i
+                                        class="fa-solid fa-arrow-right ml-2"
+                                    ></i>
+                                </Button></a
                             >
-                                Learn More <i
-                                    class="fa-solid fa-arrow-right ml-2"
-                                ></i>
-                            </Button>
                         </div>
                     </div>
                 </Card.Root>
