@@ -10,5 +10,3 @@
 <main>
   <slot />
 </main>
-
-<h1 class="bg-sky-500"> howooooo</h1>
