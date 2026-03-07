@@ -1,85 +1,128 @@
+"""
+account/models.py
+==================
+Custom user model and related models.
+"""
+
 import uuid
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
-from django.contrib.auth.models import AbstractUser, BaseUserManager
-from cloudinary.models import CloudinaryField
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
+from .managers import CustomUserManager
 
 
-class UserManager(BaseUserManager):
-    def create_user(self, email, password=None, **extra_fields):
-        if not email:
-            raise ValueError("Email is required")
+class CustomUser(AbstractBaseUser, PermissionsMixin):
+    """
+    Custom user model where email is the unique identifier.
+    """
 
-        email = self.normalize_email(email)
-        extra_fields.setdefault("is_active", True)
-
-        user = self.model(email=email, **extra_fields)
-
-        if password:
-            user.set_password(password)
-        else:
-            user.set_unusable_password()
-
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, email, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('is_active', True)
-        return self.create_user(email, password, **extra_fields)
-
-
-class User(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    username = models.CharField(
-        max_length=150, unique=True, blank=True, null=True)
-    email = models.EmailField(unique=True)
-    is_verified = models.BooleanField(default=False)
-    AUTH_PROVIDERS = (
-        ("email", "Email"),
-        ("google", "Google"),
+    email = models.EmailField(_("email address"), unique=True)
+
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(
+        default=False,
+        help_text="Designates whether this user can log in. Set to True after email verification.",
     )
 
-    auth_provider = models.CharField(
-        max_length=20,
-        choices=AUTH_PROVIDERS,
-        default="email"
-    )
+    date_joined = models.DateTimeField(default=timezone.now)
+    last_login = models.DateTimeField(null=True, blank=True)
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
-    objects = UserManager()
+    objects = CustomUserManager()
 
-    def save(self, *args, **kwargs):
-        if not self.username:
-            # Generate username based on UUID
-            self.username = f"user_{str(self.id)}"
-        super().save(*args, **kwargs)
+    class Meta:
+        verbose_name = _("user")
+        verbose_name_plural = _("users")
+        ordering = ["-date_joined"]
 
-    def __str__(self):
-        return self.username if self.username else f"user_{self.id}"
+    def __str__(self) -> str:
+        return self.email
+
+    def activate(self) -> None:
+        self.is_active = True
+        self.save(update_fields=["is_active"])
 
 
 class Profile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name='profile')
-    first_name = models.CharField(max_length=100, blank=True, null=True)
-    last_name = models.CharField(max_length=100, blank=True, null=True)
-    bio = models.TextField(blank=True, null=True)
-    occupation = models.CharField(max_length=100, blank=True, null=True)
-    location = models.CharField(max_length=100, blank=True, null=True)
-    contact_info = models.CharField(
-        max_length=255, blank=True, null=True)  # added
-    profile_image = CloudinaryField(
-        'image',
-        folder='online_therapy/profile_image',
-        blank=True,
-        null=True
-    )
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="profile")
+    first_name = models.CharField(max_length=150, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
+    avatar = models.ImageField(upload_to="avatars/", null=True, blank=True)
+    bio = models.TextField(blank=True)
+    phone_number = models.CharField(max_length=20, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("profile")
+        verbose_name_plural = _("profiles")
+
+    def __str__(self) -> str:
+        return f"Profile of {self.user.email}"
+
+    @property
+    def full_name(self) -> str:
+        return f"{self.first_name} {self.last_name}".strip()
+
+
+class ActivationToken(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="activation_token")
+    token_hash = models.CharField(max_length=64, unique=True)
+    expires_at = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        full_name = f"{self.first_name or ''} {self.last_name or ''}".strip()
-        return f'{full_name} or {self.user.email}'
+    class Meta:
+        verbose_name = _("activation token")
+        verbose_name_plural = _("activation tokens")
+
+    def __str__(self) -> str:
+        return f"ActivationToken for {self.user.email}"
+
+    @property
+    def is_expired(self) -> bool:
+        return timezone.now() > self.expires_at
+
+
+class PasswordResetToken(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="password_reset_tokens")
+    token_hash = models.CharField(max_length=64, unique=True)
+    expires_at = models.DateTimeField()
+    used = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("password reset token")
+        verbose_name_plural = _("password reset tokens")
+        ordering = ["-created_at"]
+
+    @property
+    def is_expired(self) -> bool:
+        return timezone.now() > self.expires_at
+
+
+class SocialAuth(models.Model):
+    GOOGLE = "google"
+    PROVIDER_CHOICES = [(GOOGLE, "Google")]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="social_auths")
+    provider = models.CharField(max_length=30, choices=PROVIDER_CHOICES)
+    provider_user_id = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("social auth")
+        verbose_name_plural = _("social auths")
+        unique_together = [("provider", "provider_user_id")]
+
+

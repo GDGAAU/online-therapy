@@ -1,48 +1,81 @@
+"""
+account/serializers.py
+=======================
+Profile serializers used by custom profile endpoints and djoser user views.
+"""
+
 from rest_framework import serializers
-from .models import Profile, User
+from djoser.serializers import UserCreateSerializer as DjoserUserCreateSerializer
+
+from .models import Profile, CustomUser
+
+
+class UserCreateSerializer(DjoserUserCreateSerializer):
+    full_name = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    phone_number = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    date_of_birth = serializers.DateField(write_only=True, required=False, allow_null=True)
+
+    class Meta(DjoserUserCreateSerializer.Meta):
+        model = CustomUser
+        fields = (
+            "id",
+            "email",
+            "password",
+            "re_password",
+            "full_name",
+            "phone_number",
+            "date_of_birth",
+        )
+
+    def create(self, validated_data):
+        full_name = validated_data.pop("full_name", "").strip()
+        phone_number = validated_data.pop("phone_number", "")
+        date_of_birth = validated_data.pop("date_of_birth", None)
+
+        user = super().create(validated_data)
+        profile, _ = Profile.objects.get_or_create(user=user)
+
+        if full_name:
+            parts = full_name.split()
+            profile.first_name = parts[0]
+            profile.last_name = " ".join(parts[1:]) if len(parts) > 1 else ""
+
+        if phone_number:
+            profile.phone_number = phone_number
+
+        if date_of_birth:
+            profile.date_of_birth = date_of_birth
+
+        profile.save(update_fields=["first_name", "last_name", "phone_number", "date_of_birth"])
+        return user
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='user.username', required=False)
-    profile_image = serializers.ImageField(required=False, allow_null=True)
-
-    user_id = serializers.UUIDField(source='user.id', read_only=True)
-    verified = serializers.BooleanField(
-        source='user.is_verified', read_only=True)
+    email = serializers.EmailField(source="user.email", read_only=True)
+    avatar_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
         fields = [
-            'id', 'username', 'user_id', 'verified',
-            'first_name', 'last_name', 'bio',
-            'occupation', 'location', 'contact_info',
-            'profile_image', 'created_at'
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "avatar_url",
+            "bio",
+            "phone_number",
+            "date_of_birth",
         ]
-        read_only_fields = ['id', 'created_at', 'verified', 'user_id']
+        read_only_fields = ["id", "email"]
 
-    def update(self, instance, validated_data):
-        user_data = validated_data.pop('user', {})
-        new_username = user_data.get('username')
+    def get_avatar_url(self, obj) -> str | None:
+        if obj.avatar:
+            request = self.context.get("request")
+            return request.build_absolute_uri(obj.avatar.url) if request else obj.avatar.url
+        return None
 
-        if new_username:
-            new_username = new_username.strip()
 
-            if new_username == "":
-                raise serializers.ValidationError(
-                    {"username": "Username cannot be empty"}
-                )
-
-            if User.objects.filter(username=new_username)\
-                           .exclude(id=instance.user.id).exists():
-                raise serializers.ValidationError(
-                    {"username": "Username is already taken"}
-                )
-
-            instance.user.username = new_username
-            instance.user.save()
-
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-
-        instance.save()
-        return instance
+class UpdateProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ["first_name", "last_name", "bio", "phone_number", "date_of_birth", "avatar"]
