@@ -8,7 +8,7 @@
 </script>
 
 <aside
-    class="md:w-[25%] w-[80%] bg-[#FFFFFF] border border-black
+    class="md:w-[25%] w-[80%] bg-[#FFFFFF] shadowxl
      bottom-0 fixed top-0 left-0 transform transition-transform duration-300 z-1000"
     class:translate-x-0={clicked}
     class:-translate-x-full={!clicked}
@@ -41,9 +41,9 @@
                 <p>Dashbord</p>
             </Button>
         </a>
-        <a href="/appointment">
+        <a href="/" class="w-full">
             <Button
-                class="flex flex-row justify-start items-center bg-white
+                class="flex flex-row justify-start items-center bg-white 
             text-black w-full rounded-none py-2 hover:bg-gray-100 active:bg-gray-200 cursor-pointer 
             focus:bg-linear-to-r from-[#3870FF] to-[#38B7FF] focus:text-white"
                 {onclick}
@@ -54,7 +54,7 @@
             </Button>
         </a>
 
-        <a href="/">
+        <a href="/" class="w-full">
             <Button
                 class="flex flex-row justify-start items-center bg-white
             text-black w-full rounded-none py-2 hover:bg-gray-100 active:bg-gray-200 cursor-pointer
@@ -65,8 +65,7 @@
                 <p>Queue Status</p>
             </Button>
         </a>
-
-        <a href="/">
+        <a href="/" class="w-full">
             <Button
                 class="flex flex-row justify-start items-center bg-white
             text-black w-full rounded-none py-2 hover:bg-gray-100 active:bg-gray-200 cursor-pointer 
@@ -78,9 +77,9 @@
             </Button>
         </a>
 
-        <a href="/">
+        <a href="/" class="w-full">
             <Button
-                class="flex flex-row justify-start items-center bg-white
+                class="flex flex-row justify-start items-center bg-white 
             text-black w-full rounded-none py-2 hover:bg-gray-100 active:bg-gray-200 cursor-pointer
             focus:bg-linear-to-r from-[#3870FF] to-[#38B7FF] focus:text-white "
                 {onclick}
