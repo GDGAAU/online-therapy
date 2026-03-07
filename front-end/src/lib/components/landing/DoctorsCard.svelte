@@ -1,5 +1,5 @@
 <script>
-    import * as Card from "$lib/components/ui/card/index.js";
+    import * as Card from "$lib/components/ui/card";
     import { doctors } from "$lib/mock/doctors";
 </script>
 

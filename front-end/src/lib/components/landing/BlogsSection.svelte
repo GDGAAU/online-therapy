@@ -1,7 +1,7 @@
 <script>
-    import * as Card from "$lib/components/ui/card/index.js";
+    import * as Card from "$lib/components/ui/card";
     import { blogs } from "$lib/mock/blogs";
-    import { Button } from "$lib/components/ui/button/index.js";
+    import { Button } from "$lib/components/ui/button";
 </script>
 
 <section class="px-4 md:px-8">
