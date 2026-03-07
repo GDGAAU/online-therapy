@@ -1,8 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { browser } from '$app/environment';
-  import { logout } from '$lib/stores/auth';
-  import { Button } from '$lib/components/ui/button';
 
   export let data: { username: string } | undefined;
 
@@ -35,9 +33,7 @@
       </button>
       <h1 class="text-2xl font-semibold text-gray-900">Profile</h1>
     </div>
-    <Button variant="outline" className="border-blue-200 text-blue-600" on:click={logout}>
-      Log out
-    </Button>
+    <div class="text-sm text-gray-500">Manage your account from the top navigation.</div>
   </div>
   <p class="text-gray-500 mt-2">Profile for <strong>{data?.username ?? 'user'}</strong> will render here.</p>
 </section>

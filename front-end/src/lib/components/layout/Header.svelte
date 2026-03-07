@@ -1,6 +1,6 @@
 <script lang="ts">
   import logoImg from "$lib/assets/logo.png";
-  import { authStore } from "$lib/stores/auth";
+  import { authStore, logout } from "$lib/stores/auth";
   import { Button } from "$lib/components/ui/button";
 </script>
 
@@ -64,6 +64,13 @@
             </svg>
           </Button>
         </a>
+        <Button
+          variant="outline"
+          class="border-blue-200 text-blue-600 hover:bg-blue-50"
+          on:click={logout}
+        >
+          Log out
+        </Button>
       {:else}
         <a href="/login" aria-label="Log in">
           <Button
