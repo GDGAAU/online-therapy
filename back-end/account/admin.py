@@ -1,36 +1,34 @@
-# account/admin.py
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, Profile
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from .models import User, Profile
+
+
+@admin.register(User)
+class UserAdmin(BaseUserAdmin):
+    list_display = ("id", "email", "username", "is_verified",
+                    "is_staff", "is_superuser", "date_joined")
+    search_fields = ("email", "username")
+    ordering = ("-date_joined",)
+    fieldsets = (
+        (None, {"fields": ("email", "password")}),
+        ("Personal Info", {"fields": ("username",)}),
+        ("Permissions", {"fields": ("is_active", "is_verified",
+         "is_staff", "is_superuser", "groups", "user_permissions")}),
+        ("Important dates", {"fields": ("last_login", "date_joined")}),
+    )
+    add_fieldsets = (
+        (None, {
+            "classes": ("wide",),
+            "fields": ("email", "password1", "password2"),
+        }),
+    )
 
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'first_name', 'last_name')  # show all important fields
-    list_display_links = ('id', 'user')  # clickable
-    search_fields = ('first_name', 'last_name', 'user__email')  # search by name or user's email
-    list_filter = ('user__is_active', 'user__is_staff')  # filter by user status
-    ordering = ('id',)
-
-
-@admin.register(CustomUser)
-class CustomUserAdmin(UserAdmin):
-    model = CustomUser
-    list_display = ('id', 'email', 'is_staff', 'is_active', 'is_superuser', 'last_login', 'date_joined')
-    list_filter = ('is_staff', 'is_active', 'is_superuser', 'groups')
-    search_fields = ('email',)
-    ordering = ('id',)
-
-    fieldsets = (
-        (None, {'fields': ('email', 'password')}),
-        ('Personal info', {'fields': ()}),
-        ('Permissions', {'fields': ('is_staff', 'is_active', 'is_superuser', 'groups', 'user_permissions')}),
-        ('Important dates', {'fields': ('last_login', 'date_joined')}),
-    )
-
-    add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'is_staff', 'is_active')}
-        ),
-    )
+    list_display = ("user", "first_name", "last_name",
+                    "occupation", "location", "created_at")
+    search_fields = ("first_name", "last_name",
+                     "user__email", "occupation", "location")
+    list_filter = ("created_at",)
+    ordering = ("-created_at",)
