@@ -17,7 +17,7 @@
 
 
             <div
-                class="w-[90%] md:w-full max-w-xl mx-auto relative -mt-20 md:mt-0 md:absolute md:-bottom-20 md:left-1/2 md:-translate-x-1/2"
+                class="w-[90%] md:w-full max-w-xl mx-auto relative -mt-20 md:mt-0 md:absolute md:-bottom-20 md:left-1/2 md:-translate-x-1/2 bg-white rounded-xl"
             >
                 <Card.Root
                     class="shadow-2xl border-none p-4 md:p-6 text-center"

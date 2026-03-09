@@ -2,9 +2,15 @@
 	import type { HTMLAttributes } from "svelte/elements";
 	import { cn } from "$lib/utils";
 
-	export let className = "";
-	export { className as class };
-	export let ref: HTMLParagraphElement | null = null;
+	
+	interface Props {
+		class?: string;
+		ref?: HTMLParagraphElement | null;
+		children?: import('svelte').Snippet;
+		[key: string]: any
+	}
+
+	let { class: className = "", ref = $bindable(null), children, ...rest }: Props = $props();
 
 	const _unused: HTMLAttributes<HTMLParagraphElement> | undefined = undefined;
 </script>
@@ -13,7 +19,7 @@
 	bind:this={ref}
 	data-slot="card-description"
 	class={cn("text-muted-foreground text-sm", className)}
-	{...$$restProps}
+	{...rest}
 >
-	<slot />
+	{@render children?.()}
 </p>

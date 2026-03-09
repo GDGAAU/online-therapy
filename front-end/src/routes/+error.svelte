@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { Button } from '$lib/components/ui/button';
   import { Card } from '$lib/components/ui/card';
@@ -15,16 +15,16 @@
     <CardContent className="p-8 space-y-6">
     <!-- Error code -->
     <div class="text-7xl font-black text-blue-400">
-      {$page.status}
+      {page.status}
     </div>
 
     <!-- Message -->
     <div class="space-y-2">
       <h1 class="text-2xl font-bold text-gray-900">
-        {$page.status === 404 ? 'Page Not Found' : 'Something went wrong'}
+        {page.status === 404 ? 'Page Not Found' : 'Something went wrong'}
       </h1>
       <p class="text-gray-500">
-        {$page.error?.message ?? 'An unexpected error occurred. Please try again.'}
+        {page.error?.message ?? 'An unexpected error occurred. Please try again.'}
       </p>
     </div>
 

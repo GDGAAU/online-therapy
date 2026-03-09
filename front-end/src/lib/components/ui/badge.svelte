@@ -1,8 +1,13 @@
 <script lang="ts">
   import { cn } from '$lib/utils';
 
-  export let variant: 'default' | 'secondary' | 'success' | 'warning' | 'destructive' = 'default';
-  export let className: string = '';
+  interface Props {
+    variant?: 'default' | 'secondary' | 'success' | 'warning' | 'destructive';
+    className?: string;
+    children?: import('svelte').Snippet;
+  }
+
+  let { variant = 'default', className = '', children }: Props = $props();
 
   const variants: Record<typeof variant, string> = {
     default: 'bg-blue-100 text-blue-700',
@@ -16,5 +21,5 @@
 <span
   class={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold', variants[variant], className)}
 >
-  <slot />
+  {@render children?.()}
 </span>
