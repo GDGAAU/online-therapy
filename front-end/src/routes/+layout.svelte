@@ -1,4 +1,11 @@
 <script lang="ts">
+ /**
+   * Root layout
+   * Runs on every page. Initializes:
+   * - Auth state (fetch /me if token exists)
+   * - Sonner toast container
+   * - Sentry (if DSN is set)
+   */
   import { onMount } from 'svelte';
   import { Toaster } from 'svelte-sonner';
   import { browser } from '$app/environment';
