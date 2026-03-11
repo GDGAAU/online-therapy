@@ -1,3 +1,17 @@
+"""
+therapy/views.py
+=================
+Appointment and therapist management endpoints.
+GET  /api/v1/therapy/therapists/                → List all therapists
+GET  /api/v1/therapy/therapists/<id>/           → Therapist detail
+GET  /api/v1/therapy/appointments/              → My appointments
+POST /api/v1/therapy/appointments/              → Book an appointment
+GET  /api/v1/therapy/appointments/<id>/         → Appointment detail
+POST /api/v1/therapy/appointments/<id>/cancel/  → Cancel appointment
+POST /api/v1/therapy/appointments/<id>/reschedule/ → Reschedule
+"""
+
+
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -18,6 +32,8 @@ from .serializers import (
 
 
 class TherapistListView(APIView):
+    """List all available therapists with optional filters."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(tags=["therapists"], summary="List therapists")
@@ -27,6 +43,7 @@ class TherapistListView(APIView):
             .prefetch_related("specialties")
             .filter(is_available=True)
         )
+        # Filter by specialty slug
         specialty = request.query_params.get("specialty")
         if specialty:
             queryset = queryset.filter(specialties__slug=specialty)
@@ -35,6 +52,8 @@ class TherapistListView(APIView):
 
 
 class TherapistDetailView(APIView):
+    """Get a single therapist's full profile."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(tags=["therapists"], summary="Therapist detail")
@@ -48,6 +67,7 @@ class TherapistDetailView(APIView):
 
 
 class AppointmentListCreateView(APIView):
+    """List the current user's appointments or create a new one."""
     permission_classes = [IsAuthenticated]
 
     @extend_schema(tags=["appointments"], summary="List my appointments")
@@ -94,6 +114,7 @@ class AppointmentListCreateView(APIView):
 
 
 class AppointmentDetailView(APIView):
+    """Retrieve a single appointment belonging to the current user."""
     permission_classes = [IsAuthenticated]
 
     def _get_appointment(self, request, pk):
@@ -110,6 +131,7 @@ class AppointmentDetailView(APIView):
 
 
 class CancelAppointmentView(APIView):
+    """Cancel an appointment."""
     permission_classes = [IsAuthenticated]
 
     @extend_schema(tags=["appointments"], summary="Cancel appointment",request=CancelAppointmentSerializer)
