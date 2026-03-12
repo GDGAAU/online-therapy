@@ -2,13 +2,19 @@
 	import type { HTMLAttributes } from "svelte/elements";
 	import { cn } from "$lib/utils";
 
-	export let className = "";
-	export { className as class };
-	export let ref: HTMLDivElement | null = null;
+	
+	interface Props {
+		class?: string;
+		ref?: HTMLDivElement | null;
+		children?: import('svelte').Snippet;
+		[key: string]: any
+	}
+
+	let { class: className = "", ref = $bindable(null), children, ...rest }: Props = $props();
 
 	const _unused: HTMLAttributes<HTMLDivElement> | undefined = undefined;
 </script>
 
-<div bind:this={ref} data-slot="card-content" class={cn("px-6", className)} {...$$restProps}>
-	<slot />
+<div bind:this={ref} data-slot="card-content" class={cn("px-6", className)} {...rest}>
+	{@render children?.()}
 </div>

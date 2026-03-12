@@ -1,5 +1,5 @@
 <script lang="ts">
-  /**
+ /**
    * Root layout
    * Runs on every page. Initializes:
    * - Auth state (fetch /me if token exists)
@@ -13,17 +13,21 @@
   import { env } from '$env/dynamic/public';
   import Header from '$lib/components/layout/Header.svelte';
   import '../app.css';
+  import { page } from '$app/stores';
 
-  export let data: unknown;
-  export let params: Record<string, string>;
+  interface Props {
+    data: any; 
+    params: Record<string, string>;
+    children?: import('svelte').Snippet;
+  }
 
-  const _unused = [data, params];
+  let { data, params, children }: Props = $props();
+
+  let stateSnapshot = $derived({ data, params });
 
   onMount(async () => {
-    // Initialize auth state on app load
     await authStore.initialize();
 
-    // Initialize Sentry in production
     if (env.PUBLIC_SENTRY_DSN) {
       const { init } = await import('@sentry/sveltekit');
       init({ dsn: env.PUBLIC_SENTRY_DSN, tracesSampleRate: 0.1 });
@@ -31,13 +35,13 @@
   });
 </script>
 
-<!-- Sonner toast container — renders toasts from anywhere in the app -->
-{#if browser}
-  <Toaster position="top-right" richColors closeButton />
+
+<Toaster position="top-right" richColors closeButton />
+
+{#if $page.url.pathname !== '/dashboard'}
+  <Header />
 {/if}
 
-<Header />
-
 <main>
-  <slot />
+  {@render children?.()}
 </main>
