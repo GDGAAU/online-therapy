@@ -46,8 +46,8 @@
     }
   );
 
-  let showPassword = false;
-  let registered = false;
+  let showPassword = $state(false);
+  let registered = $state(false);
 </script>
 
 <svelte:head>

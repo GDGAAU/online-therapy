@@ -23,21 +23,21 @@
 
   // ─── State ───────────────────────────────────────────────
 
-  let therapists: Therapist[] = [];
-  let isLoading = true;
-  let searchQuery = '';
-  let activeSpecialty = 'all';
-  let selectedTherapist: Therapist | null = null;
-  let showBookingModal = false;
+  let therapists: Therapist[] = $state([]);
+  let isLoading = $state(true);
+  let searchQuery = $state('');
+  let activeSpecialty = $state('all');
+  let selectedTherapist: Therapist | null = $state(null);
+  let showBookingModal = $state(false);
 
   const specialties = ['all', 'Pediatric', 'General Medicine', 'Psychiatry', 'Psychotherapy'];
 
-  $: filteredTherapists = therapists
+  let filteredTherapists = $derived(therapists
     .filter((t) =>
       activeSpecialty === 'all' ||
       t.specialties.some((s) => s.name === activeSpecialty)
     )
-    .filter((t) => t.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    .filter((t) => t.name.toLowerCase().includes(searchQuery.toLowerCase())));
 
   // ─── Booking Form ─────────────────────────────────────────
 

@@ -2,9 +2,15 @@
 	import type { HTMLAttributes } from "svelte/elements";
 	import { cn } from "$lib/utils";
 
-	export let className = "";
-	export { className as class };
-	export let ref: HTMLDivElement | null = null;
+	
+	interface Props {
+		class?: string;
+		ref?: HTMLDivElement | null;
+		children?: import('svelte').Snippet;
+		[key: string]: any
+	}
+
+	let { class: className = "", ref = $bindable(null), children, ...rest }: Props = $props();
 
 	const _unused: HTMLAttributes<HTMLDivElement> | undefined = undefined;
 </script>
@@ -16,7 +22,7 @@
 		"bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
 		className
 	)}
-	{...$$restProps}
+	{...rest}
 >
-	<slot />
+	{@render children?.()}
 </div>

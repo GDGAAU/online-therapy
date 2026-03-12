@@ -22,10 +22,10 @@
 
   // ─── State ───────────────────────────────────────────────
 
-  let appointments: Appointment[] = [];
-  let isLoading = true;
-  let searchQuery = '';
-  let activeFilter: AppointmentStatus | 'all' = 'all';
+  let appointments: Appointment[] = $state([]);
+  let isLoading = $state(true);
+  let searchQuery = $state('');
+  let activeFilter: AppointmentStatus | 'all' = $state('all');
 
   const filters: { label: string; value: AppointmentStatus | 'all' }[] = [
     { label: 'All', value: 'all' },
@@ -36,12 +36,12 @@
   ];
 
   // Cancel modal
-  let cancelTarget: Appointment | null = null;
-  let isCancelling = false;
+  let cancelTarget: Appointment | null = $state(null);
+  let isCancelling = $state(false);
 
   // ─── Derived ─────────────────────────────────────────────
 
-  $: filtered = appointments
+  let filtered = $derived(appointments
     .filter((a) => activeFilter === 'all' || a.status === activeFilter)
     .filter((a) => {
       const q = searchQuery.toLowerCase();
@@ -50,7 +50,7 @@
         a.therapist_specialty.some((s) => s.toLowerCase().includes(q)) ||
         a.status.includes(q)
       );
-    });
+    }));
 
   // ─── Lifecycle ────────────────────────────────────────────
 
@@ -113,7 +113,7 @@
 <div class="min-h-screen bg-gray-50">
   <!-- Header -->
   <header class="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-    <button on:click={() => goto('/dashboard')} aria-label="Back">
+    <button onclick={() => goto('/dashboard')} aria-label="Back">
       <ArrowLeft class="text-gray-600" size={22} />
     </button>
     <h1 class="text-lg font-bold text-blue-600">My Appointments</h1>

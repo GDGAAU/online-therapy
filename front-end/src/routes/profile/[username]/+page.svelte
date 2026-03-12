@@ -2,7 +2,11 @@
   import { goto } from '$app/navigation';
   import { browser } from '$app/environment';
 
-  export let data: { username: string } | undefined;
+  interface Props {
+    data: { username: string } | undefined;
+  }
+
+  let { data }: Props = $props();
 
   const goBack = () => {
     if (browser && window.history.length > 1) {
@@ -23,7 +27,7 @@
     <div class="flex items-center gap-3">
       <button
         type="button"
-        on:click={goBack}
+        onclick={goBack}
         class="inline-flex items-center justify-center rounded-full border border-blue-100 bg-white p-2 text-blue-600 shadow-sm transition hover:bg-blue-50"
         aria-label="Go back"
       >
