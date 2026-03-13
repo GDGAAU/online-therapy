@@ -1,13 +1,5 @@
 <script lang="ts">
-  /**
-   * /appointment — My Appointments page
-   *
-   * Refactored from the original hardcoded version to use:
-   * - Real API data via therapyApi
-   * - Proper TypeScript types
-   * - Shadcn-style UI components via bits-ui
-   * - Sonner toasts for feedback
-   */
+  
   import { onMount } from 'svelte';
   import { toast } from 'svelte-sonner';
   import { goto } from '$app/navigation';
@@ -19,6 +11,7 @@
   import { CardContent } from '$lib/components/ui/card-content';
   import { therapyApi, ApiError } from '$lib/api';
   import type { Appointment, AppointmentStatus } from '$lib/types';
+  import { SearchInput } from '$lib/components/ui/search-input';
 
   // ─── State ───────────────────────────────────────────────
 
@@ -94,12 +87,12 @@
   }
 
   const STATUS_COLORS: Record<AppointmentStatus, string> = {
-    pending: 'bg-yellow-100 text-yellow-700',
-    confirmed: 'bg-green-100 text-green-700',
-    completed: 'bg-blue-100 text-blue-700',
-    cancelled: 'bg-red-100 text-red-700',
-    no_show: 'bg-gray-100 text-gray-600'
-  };
+  pending: 'bg-[#FBBC04]/25 text-[#FBBC04]',     // Yellow with 25% opacity
+  confirmed: 'bg-[#34A853]/25 text-[#34A853]',   // Green with 25% opacity
+  completed: 'bg-[#34A853]/25 text-[#34A853]',   // Green with 25% opacity
+  cancelled: 'bg-[#EA4335]/25 text-[#EA4335]',   // Red with 25% opacity
+  no_show: 'bg-[#EA4335]/25 text-[#EA4335]'      // Red with 25% opacity
+};
 
   function canCancel(a: Appointment) {
     return a.status === 'pending' || a.status === 'confirmed';
@@ -107,46 +100,46 @@
 </script>
 
 <svelte:head>
-  <title>My Appointments — Online Therapy</title>
+  <title>My Appointments</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
   <!-- Header -->
-  <header class="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-    <button on:click={() => goto('/dashboard')} aria-label="Back">
-      <ArrowLeft class="text-gray-600" size={22} />
-    </button>
-    <h1 class="text-lg font-bold text-blue-600">My Appointments</h1>
-    <button aria-label="Notifications">
-      <Bell class="text-gray-600" size={22} />
-    </button>
-  </header>
+  <header class="px-4 py-3 flex items-center sticky top-0 z-10">
+  <Button on:click={() => goto('/dashboard')} variant="ghost" size="icon" aria-label="Back">
+    <ArrowLeft class="text-gray-600" size={22} />
+  </Button>
+  <h1 class="flex-1 text-center text-lg font-bold text-[#3870FF]">My Appointments</h1>
+  <Button variant="ghost" size="icon" aria-label="Notifications">
+    <Bell class="text-gray-600" size={22} />
+  </Button>
+</header>
 
-  <main class="max-w-lg mx-auto p-4 space-y-4 pb-24">
-    <!-- Search -->
+  <main class="w-full max-w-lg lg:max-w-3xl xl:max-w-4xl mx-auto p-4 space-y-4 pb-10">
     <div class="relative">
-      <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-      <Input
-        type="text"
-        placeholder="Search appointments…"
-        bind:value={searchQuery}
-        className="pl-10"
-      />
+      <!-- Search -->
+<SearchInput 
+  bind:value={searchQuery}
+  placeholder="Search appointments…"
+  onSearch={(query) => console.log('Searching:', query)}
+/>
     </div>
 
     <!-- Filters -->
-    <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-      {#each filters as f}
-        <Button
-          on:click={() => (activeFilter = f.value)}
-          size="sm"
-          variant={activeFilter === f.value ? 'default' : 'outline'}
-          className="rounded-full"
-        >
-          {f.label}
-        </Button>
-      {/each}
+<div class="flex overflow-x-auto space-x-3 px-4 py-3 scrollbar-hide">
+  {#each filters as f}
+    <div
+      on:click={() => (activeFilter = f.value)}
+      class={`px-4 py-1.5 rounded-full whitespace-nowrap cursor-pointer text-sm font-semibold transition-all duration-200 ${
+        activeFilter === f.value
+          ? 'bg-[#809CFF] text-white'
+          : 'bg-transparent border border-[#809CFF] text-[#809CFF]'
+      }`}
+    >
+      {f.label}
     </div>
+  {/each}
+</div>
 
     <!-- Loading -->
     {#if isLoading}
@@ -154,90 +147,96 @@
         <Loader2 class="animate-spin text-blue-400" size={32} />
       </div>
 
-    <!-- Empty -->
-    {:else if filtered.length === 0}
-      <div class="flex flex-col items-center justify-center py-16 text-center space-y-4">
-        <div class="text-5xl">🗓️</div>
-        <p class="text-gray-500">
-          {searchQuery || activeFilter !== 'all'
-            ? 'No appointments match your filters.'
-            : "You don't have any appointments yet."}
-        </p>
-        {#if !searchQuery && activeFilter === 'all'}
-          <Button
-            on:click={() => goto('/book-appointment')}
-            className="rounded-xl"
-          >
-            Book your first appointment
+    <!-- Empty State - Add this inside your main where appointments would show -->
+{:else if filtered.length === 0}
+  <div class="flex flex-col items-center justify-center py-12 text-center px-4 space-y-6">
+    <!-- Calendar/Empty Icon -->
+    <div class="w-48 h-48 rounded-full flex items-center justify-center">
+      <span class="text-7xl">📅</span>
+    </div>
+    
+    <!-- Empty State Text -->
+    <div class="space-y-2">
+      <h2 class="text-xl font-semibold text-gray-800">No appointments yet</h2>
+      <p class="text-gray-500 max-w-xs">
+        Looks like you don't have any appointments scheduled. Ready to book your first session?
+      </p>
+    </div>
+
+    <!-- Book Now Button -->
+    <button
+      on:click={() => goto('/book-appointment')}
+      class="px-8 py-3 rounded-xl bg-gradient-to-r from-[#38B7FF] to-[#3870FF] text-white font-medium hover:opacity-90 transition-opacity shadow-md"
+    >
+      Book Your Appointment
+    </button>
+  </div>
+
+    <!-- Appointment Cards -->
+{:else}
+  <div class="space-y-3">
+    {#each filtered as appt (appt.id)}
+      <div class="bg-[#ECF1FF] border border-[#656565]/30 shadow-md rounded-xl p-6 w-full">
+        <!-- Top Row -->
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <p class="font-medium text-black">{appt.therapist_name}</p>
+            <p class="text-sm text-black/60">{appt.therapist_specialty.join(', ') || 'General'}</p>
+          </div>
+          <!-- Fixed Badge Line -->
+          <div class={STATUS_COLORS[appt.status] + " px-3 py-1 text-sm font-medium rounded-md"}>
+            {appt.status}
+          </div>
+        </div>
+
+        <!-- Time -->
+        <div class="flex items-center gap-2 text-black/40 text-sm mb-4">
+          <Clock size={14} class="text-black/40" />
+          {formatDate(appt.scheduled_at)}
+          ({appt.duration_minutes}min, {appt.appointment_type})
+        </div>
+
+        <!-- Actions -->
+        {#if appt.status === 'completed'}
+          <Button class="w-full bg-gradient-to-r from-[#38B7FF] to-[#3870FF] text-white hover:opacity-90 transition-opacity rounded-xl">
+            View Medical Record
+          </Button>
+        {:else if canCancel(appt)}
+          <div class="flex gap-2">
+            <Button class="flex-1 bg-gradient-to-r from-[#38B7FF] to-[#3870FF] text-white hover:opacity-90 transition-opacity rounded-xl">
+              Reschedule
+            </Button>
+            <Button
+  on:click={() => (cancelTarget = appt)}
+  class="flex-1 bg-transparent border-2 border-transparent bg-gradient-to-r from-[#38B7FF] to-[#3870FF] text-transparent hover:opacity-90 transition-opacity rounded-xl py-2 px-4 font-medium"
+  style="background-image: linear-gradient(to right, #38B7FF, #3870FF); -webkit-background-clip: text; background-clip: text; border-image: linear-gradient(to right, #38B7FF, #3870FF) 1; border-image-slice: 1; border-radius: 0.75rem;"
+>
+  Cancel
+</Button>
+            
+            
+          </div>
+        {:else if appt.status === 'cancelled'}
+          <Button class="w-full bg-gradient-to-r from-[#38B7FF] to-[#3870FF] text-white hover:opacity-90 transition-opacity rounded-xl">
+            Book Again
           </Button>
         {/if}
       </div>
-
-    <!-- Appointment Cards -->
-    {:else}
-      <div class="space-y-3">
-        {#each filtered as appt (appt.id)}
-          <Card>
-            <CardContent className="space-y-3">
-            <!-- Top Row -->
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="font-semibold text-gray-900">{appt.therapist_name}</p>
-                <p class="text-sm text-gray-500">{appt.therapist_specialty.join(', ') || 'General'}</p>
-              </div>
-              <Badge className={STATUS_COLORS[appt.status]}>{appt.status}</Badge>
-            </div>
-
-            <!-- Time -->
-            <div class="flex items-center gap-2 text-gray-500 text-sm">
-              <Clock size={14} />
-              {formatDate(appt.scheduled_at)}
-              ({appt.duration_minutes}min, {appt.appointment_type})
-            </div>
-
-            <!-- Actions -->
-            {#if appt.status === 'completed'}
-              <Button variant="outline" className="w-full">
-                View Medical Record
-              </Button>
-            {:else if canCancel(appt)}
-              <div class="flex gap-2">
-                <Button className="flex-1">
-                  Reschedule
-                </Button>
-                <Button
-                  on:click={() => (cancelTarget = appt)}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-              </div>
-            {:else if appt.status === 'cancelled'}
-              <Button
-                on:click={() => goto('/book-appointment')}
-                className="w-full"
-              >
-                Book Again
-              </Button>
-            {/if}
-            </CardContent>
-          </Card>
-        {/each}
-      </div>
-    {/if}
+    {/each}
+  </div>
+{/if}
   </main>
 
   <!-- FAB -->
-  <div class="fixed bottom-6 right-6">
-    <Button
-      on:click={() => goto('/book-appointment')}
-      className="rounded-full px-5 py-3 shadow-lg"
-    >
-      <Plus size={18} />
-      Book Now
-    </Button>
-  </div>
+<div class="fixed bottom-6 right-6">
+  <Button
+    on:click={() => goto('/book-appointment')}
+    class="rounded-full px-5 py-3 lg:px-8 lg:py-4 lg:text-lg shadow-lg bg-gradient-to-r from-[#38B7FF] to-[#3870FF] text-white hover:opacity-90 transition-opacity"
+  >
+    <Plus size={18} class="mr-1 lg:w-5 lg:h-5" />
+    Book Now
+  </Button>
+</div>
 </div>
 
 <!-- Cancel Confirmation Modal -->

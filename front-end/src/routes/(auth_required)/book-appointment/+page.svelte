@@ -20,6 +20,7 @@
   import { CardContent } from '$lib/components/ui/card-content';
   import { Select } from '$lib/components/ui/select';
   import { Textarea } from '$lib/components/ui/textarea';
+  import {SearchInput} from '$lib/components/ui/search-input';
 
   // ─── State ───────────────────────────────────────────────
 
@@ -77,6 +78,19 @@
   }
 
   // ─── Lifecycle ───────────────────────────────────────────
+onMount(async () => {
+  isLoading = false;
+  
+  // REAL API CODE - Comment out for now
+  // try {
+  //   const res = await therapyApi.listTherapists();
+  //   therapists = res.results;
+  // } catch {
+  //   toast.error('Failed to load therapists.');
+  // } finally {
+  //   isLoading = false;
+  // }
+});
 
   onMount(async () => {
     try {
@@ -95,43 +109,38 @@
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
-  <!-- Header -->
-  <header class="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-    <Button on:click={() => goto('/dashboard')} variant="ghost" size="icon" aria-label="Back">
-      <ArrowLeft class="text-gray-600" size={22} />
-    </Button>
-    <h1 class="text-lg font-bold text-blue-600">Book Appointment</h1>
-    <Button variant="ghost" size="icon" aria-label="Notifications">
-      <Bell class="text-gray-600" size={22} />
-    </Button>
-  </header>
+ <header class="border-gray-100 px-4 py-3 flex items-center sticky top-0 z-10">
+  <Button on:click={() => goto('/dashboard')} variant="ghost" size="icon" aria-label="Back">
+    <ArrowLeft class="text-gray-600" size={22} />
+  </Button>
+  <h1 class="flex-1 text-center text-lg font-bold text-[#3870FF]">Book Appointment</h1>
+  
+</header>
+  <main class="w-full max-w-lg lg:max-w-3xl xl:max-w-4xl mx-auto p-4 space-y-4 pb-10">
+    <SearchInput 
+  bind:value={searchQuery}
+  placeholder="Search by doctor or speciality"
+  onSearch={(query) => {
+    console.log('Searching for:', query);
+  }}
+ 
+/>
 
-  <main class="max-w-lg mx-auto p-4 space-y-4 pb-10">
-    <!-- Search -->
-    <div class="relative">
-      <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-      <Input
-        type="text"
-        placeholder="Search therapists…"
-        bind:value={searchQuery}
-        className="pl-10"
-      />
+<!-- FILTERS -->
+<div class="flex overflow-x-auto space-x-3 px-4 py-3 scrollbar-hide">
+  {#each specialties as s}
+    <div
+      class={`px-4 py-1.5 rounded-full whitespace-nowrap cursor-pointer text-sm font-semibold transition-all duration-200 ${
+        activeSpecialty === s
+          ? 'bg-[#809CFF] text-white'  
+          : 'bg-[#ECF1FF] border border-[#809CFF] text-[#809CFF]' 
+      }`}
+      on:click={() => activeSpecialty = s}
+    >
+      {s === 'all' ? 'All' : s}
     </div>
-
-    <!-- Specialty Filters -->
-    <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-      {#each specialties as s}
-        <Button
-          on:click={() => (activeSpecialty = s)}
-          size="sm"
-          variant={activeSpecialty === s ? 'default' : 'outline'}
-          className="rounded-full whitespace-nowrap text-sm capitalize"
-        >
-          {s === 'all' ? 'All' : s}
-        </Button>
-      {/each}
-    </div>
-
+  {/each}
+</div>
     <!-- Loading -->
     {#if isLoading}
       <div class="flex justify-center py-16">
@@ -145,50 +154,61 @@
       </div>
 
     <!-- Therapist Cards -->
-    {:else}
-      <div class="space-y-3">
-        {#each filteredTherapists as therapist (therapist.id)}
-          <Card>
-            <CardContent className="space-y-3">
-              <div class="flex items-start gap-3">
-                <!-- Avatar -->
-                {#if therapist.avatar_url}
-                  <img src={therapist.avatar_url} alt={therapist.name} class="w-12 h-12 rounded-full object-cover" />
-                {:else}
-                  <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                    <UserCircle class="text-blue-400" size={28} />
-                  </div>
-                {/if}
+{:else}
+  <div class="space-y-3">
+    {#each filteredTherapists as therapist (therapist.id)}
+      <div class="bg-[#ECF1FF] border border-[#656565]/30 shadow-sm rounded-xl p-8 w-full">
+        <!-- Top section with avatar, info, and badge -->
+        <div class="flex items-start gap-3 mb-8">
+          <!-- Avatar/Person icon -->
+          <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center flex-shrink-0">
+            <UserCircle class="text-black" size={24} />
+          </div>
 
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-start justify-between gap-2">
-                    <div>
-                      <p class="font-semibold text-gray-900">{therapist.name}</p>
-                      <p class="text-sm text-gray-500">
-                        {therapist.specialties.map((s) => s.name).join(', ') || 'General'}
-                      </p>
-                      <p class="text-xs text-gray-400">{therapist.years_of_experience} years experience</p>
-                    </div>
-                    <Badge variant={therapist.is_available ? 'success' : 'destructive'}>
-                      {therapist.is_available ? 'Available' : 'Unavailable'}
-                    </Badge>
-                  </div>
-                </div>
+          <!-- Name, Specialization, and Experience -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <!-- Doctor Name -->
+                <p class="font-medium text-black truncate">{therapist.name}</p>
+                
+                <!-- Specialization -->
+                <p class="text-sm text-black/60 truncate">
+                  {therapist.specialties.map((s) => s.name).join(', ') || 'General Medicine'}
+                </p>
+                
+                <!-- Years of Experience -->
+                <p class="text-xs text-black/40 mt-0.5">{therapist.years_of_experience} years experience</p>
               </div>
+              
+              <!-- Availability Badge -->
+{#if therapist.is_available}
+  <div class="bg-[#34A853]/25 text-[#34A853] px-3 py-0.5 text-sm font-medium rounded-md">
+    Available
+  </div>
+{:else}
+  <div class="bg-red-500/25 text-red-600 px-3 py-0.5 text-sm font-medium rounded-md">
+    Unavailable
+  </div>
+{/if}
+            </div>
+          </div>
+        </div>
 
-              <Button
-                on:click={() => openBookingModal(therapist)}
-                disabled={!therapist.is_available}
-                className="w-full"
-                variant={therapist.is_available ? 'default' : 'secondary'}
-              >
-                {therapist.is_available ? 'Book Appointment' : 'Unavailable'}
-              </Button>
-            </CardContent>
-          </Card>
-        {/each}
+        <!-- Book Appointment Button -->
+<Button
+  on:click={() => openBookingModal(therapist)}
+  disabled={!therapist.is_available}
+  class="w-full bg-gradient-to-r from-[#38B7FF] to-[#3870FF] text-white hover:opacity-90 transition-opacity"
+  variant={therapist.is_available ? 'default' : 'secondary'}
+>
+  {therapist.is_available ? 'Book Appointment' : 'Unavailable'}
+</Button>
       </div>
-    {/if}
+    {/each}
+  </div>
+{/if}
+
   </main>
 </div>
 
@@ -261,3 +281,4 @@
     </Card>
   </div>
 {/if}
+ 
