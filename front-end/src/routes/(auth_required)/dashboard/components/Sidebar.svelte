@@ -1,5 +1,6 @@
 <script>
     import Button from "$lib/components/ui/button/button.svelte";
+    import { authStore } from "@";
     let { clicked = $bindable() } = $props();
     let image = $state(false);
     function onclick() {
@@ -9,7 +10,7 @@
 
 <aside
     class="md:w-[25%] w-[80%] bg-[#FFFFFF] border border-black
-     bottom-0 fixed top-0 left-0 transform transition-transform duration-300 z-1000"
+     bottom-0 fixed top-0 left-0 transform transition-transform duration-300 z-50"
     class:translate-x-0={clicked}
     class:-translate-x-full={!clicked}
 >
@@ -18,13 +19,13 @@
     >
         <div class="rounded-full p-1.5">
             {#if image}
-                <img src="" alt="profile imag" class="rounded-full" />
+                <img src="" alt="profile image" class="rounded-full" />
             {:else}
                 <i class="fa-regular fa-circle-user text-4xl"></i>
             {/if}
         </div>
         <div>
-            <h1 class="font-bold">John Smith</h1>
+            <h1 class="font-bold">{authStore.user}</h1>
             <p>Patient</p>
         </div>
     </div>
@@ -38,7 +39,7 @@
                 {onclick}
             >
                 <i class="fa-solid fa-house text-xl text-slate-600"> </i>
-                <p>Dashbord</p>
+                <p>Dashboard</p>
             </Button>
         </a>
         <a href="/" class="w-full">

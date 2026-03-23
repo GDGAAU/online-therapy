@@ -1,6 +1,5 @@
-
 <script>
-    import { Button } from "$lib/components/ui/button/index.js";
+    import { Button } from "$lib/components/ui/button";
     let { color, bgColor,OnToggle} = $props();
     
 
@@ -13,7 +12,7 @@
 >
     <nav class="flex justify-between md:py-4 py-5 mx-auto max-w-7xl px-4">
         <Button
-            class="hover:bg-gray-100 active:bg-gray-200 font-semibold rounded-xl transition-all cursor-pointer px-3 py-3 border-0 bg-trasparent shadow-none"
+            class="hover:bg-gray-100 active:bg-gray-200 font-semibold rounded-xl transition-all cursor-pointer px-3 py-3 border-0 bg-transparent shadow-none"
             onclick={OnToggle}
             ><i
                 class="fa-solid fa-bars text-2xl md:text-xl"

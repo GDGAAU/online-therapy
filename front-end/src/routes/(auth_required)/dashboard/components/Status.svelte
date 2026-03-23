@@ -1,5 +1,5 @@
 <script>
-    import * as Card from "$lib/components/ui/card/index.js";
+    import * as Card from "$lib/components/ui/card";
     import {Button} from  "$lib/components/ui/button"
 </script>
 
@@ -100,7 +100,7 @@
                 <div class="flex items-center justify-between py-3">
                     <div>
                         <p class="font-semibold">Dr. Dawit Bekele</p>
-                        <p class="text-[#656565]">Pychologist . CheckUp</p>
+                        <p class="text-[#656565]">Psychologist . CheckUp</p>
                     </div>
                     <div  class="bg-[#FBBC0440] text-[#FBBC04] px-3 py-0.5 font-semibold rounded-sm">
                         Pending 
@@ -111,7 +111,7 @@
                     <p class="text-[#656565]">  04-09-2025 at 2:30 PM </p>
                 </div> 
 
-                <Button class="  mt-2 p-1.5 text-[#38B7FF] border border-[#3870FF] text-xl py-5 bg-[#ECF1FF] w-full rounded-1 hover:bg-[#38B7FF] hover:text-white cursor-pointer">
+                <Button class="mt-2 p-1.5 text-[#38B7FF] border border-[#3870FF] text-xl py-5 bg-[#ECF1FF] w-full rounded-xl hover:bg-[#38B7FF] hover:text-white cursor-pointer">
                     Cancel
                 </Button>
                 
@@ -126,7 +126,7 @@
 
             <div class="flex items-center gap-3">
                 <i class="fa-solid fa-hand-holding-heart  text-2xl"></i>
-                <p class="font-semibold text-xl"> Daily Welness Tips</p>
+                <p class="font-semibold text-xl"> Daily Wellness Tips</p>
             </div>
             <p class="font-medium">
                 Stay hydrated! Aim for 8 glasses of water throughout the day to maintain optimal health
@@ -148,7 +148,7 @@
                 <p class="font-semibold text-xl"> AI chat Assistant</p>
             </div>
             <p class="font-medium">
-                Ask me about appointments, medications, or bth Health questions.
+                Ask me about appointments, medications, or both Health questions.
             </p>
 
             <Button class="bg-linear-to-r from-[#3870FF] to-[#38B7FF] w-full text-xl py-6  cursor-pointer">

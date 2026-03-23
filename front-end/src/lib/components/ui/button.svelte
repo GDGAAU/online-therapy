@@ -5,8 +5,11 @@
 
   const dispatch = createEventDispatcher<{ click: MouseEvent }>();
 
+  //  Added for type-script compatability
+  type Variant = 'default' | 'outline' | 'ghost' | 'secondary' | 'destructive';
+  type Size = 'sm' | 'md' | 'lg' | 'icon';
 
-  const variants: Record<typeof variant, string> = {
+  const variants: Record<Variant, string> = {
     default: 'bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50',
     outline: 'border border-gray-200 text-gray-700 hover:bg-gray-50',
     ghost: 'text-gray-700 hover:bg-gray-100',
@@ -14,7 +17,7 @@
     destructive: 'bg-red-500 text-white hover:bg-red-600 disabled:opacity-50'
   };
 
-  const sizes: Record<typeof size, string> = {
+  const sizes: Record<Size, string> = {
     sm: 'h-9 px-3 rounded-lg text-sm',
     md: 'h-10 px-4 rounded-xl',
     lg: 'h-11 px-6 rounded-xl text-base',
