@@ -19,6 +19,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 from django.utils import timezone  
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from core.settings.base import GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+from .serializers import GenerateMeetingLinkSerializer
+from datetime import timedelta
+from googleapiclient.errors import HttpError
 
 from .models import Therapist, Appointment
 from .serializers import (
@@ -181,3 +187,81 @@ class AppointmentRescheduleView(APIView):
                 "appointment": AppointmentSerializer(appointment, context={"request": request}).data
             }
         )
+    
+
+
+
+  
+
+class GenerateMeetingLinkView(APIView):
+    """Generate a Google Meet link for a confirmed upcoming appointment."""
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(tags=["appointments"], summary="Generate Google Meet link", responses={200: GenerateMeetingLinkSerializer})
+    def post(self, request, pk):
+        appointment = get_object_or_404(Appointment, pk=pk)
+
+        
+        if appointment.therapist.user != request.user:
+            return Response(
+                {"error": "Only the assigned therapist can generate the meeting link."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        if appointment.status != Appointment.Status.CONFIRMED:
+            return Response(
+                {"error": "Meeting link can only be generated for confirmed appointments."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if appointment.scheduled_at < timezone.now():
+            return Response(
+                {"error": "Cannot generate meeting link for past appointments."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            social_auth = request.user.social_auths.get(provider="google")
+        except request.user.social_auths.model.DoesNotExist:
+            return Response(
+                {"error": "Google account not linked for this therapist."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+       
+        creds = Credentials(
+            token=social_auth.token_hash,
+            refresh_token=getattr(social_auth, "refresh_token", None),
+            token_uri="https://oauth2.googleapis.com/token",
+            client_id=GOOGLE_CLIENT_ID,
+            client_secret=GOOGLE_CLIENT_SECRET,
+            scopes=["https://www.googleapis.com/auth/calendar.events"],
+        )
+
+        service = build("calendar", "v3", credentials=creds)
+        event = {
+            "summary": f"Session with {appointment.patient.email}",
+            "start": {"dateTime": appointment.scheduled_at.isoformat(), "timeZone": "UTC"},
+            "end": {"dateTime": (appointment.scheduled_at + timedelta(minutes=appointment.duration_minutes)).isoformat(), "timeZone": "UTC"},
+            "conferenceData": {"createRequest": {"requestId": str(appointment.id)}},
+        }
+
+        try:
+            created_event = service.events().insert(
+                calendarId="primary",
+                body=event,
+                conferenceDataVersion=1
+            ).execute()
+        except HttpError as e:
+            return Response(
+                {"error": f"Failed to create Google Meet link: {e}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        appointment.meeting_link = created_event.get("hangoutLink")
+        appointment.save(update_fields=["meeting_link"])
+
+        serializer = GenerateMeetingLinkSerializer({
+            "appointment_id": appointment.id,
+            "meeting_link": appointment.meeting_link
+        })
+        return Response(serializer.data, status=status.HTTP_200_OK)
