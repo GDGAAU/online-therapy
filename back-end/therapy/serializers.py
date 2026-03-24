@@ -51,7 +51,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
         fields = [
             "id", "therapist", "therapist_name", "therapist_specialty",
             "status", "appointment_type", "scheduled_at", "duration_minutes",
-            "reason", "created_at",
+            "reason", "created_at","meeting_link",
         ]
         read_only_fields = ["id", "status", "created_at"]
 
@@ -96,3 +96,12 @@ class RescheduleAppointmentSerializer(serializers.Serializer):
         if not appointment or not appointment.can_reschedule():
             raise serializers.ValidationError("This appointment cannot be rescheduled.")
         return attrs
+    
+
+
+class GenerateMeetingLinkSerializer(serializers.Serializer):
+    """Serializer for generating a meeting link for an appointment."""
+    appointment_id = serializers.UUIDField(read_only=True)
+    meeting_link = serializers.URLField(read_only=True)
+
+
