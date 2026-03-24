@@ -209,6 +209,7 @@ SPECTACULAR_SETTINGS = {
 
 # ─── Google OAuth ────────────────────────────────────────────
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 
 # ─── Email ──────────────────────────────────────────────────
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
