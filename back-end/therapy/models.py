@@ -101,6 +101,8 @@ class Appointment(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    meeting_link = models.URLField(blank=True, null=True)
+
 
     class Meta:
         ordering = ["-scheduled_at"]

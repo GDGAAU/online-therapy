@@ -2,6 +2,7 @@
 from django.urls import path
 from .views import (
     AppointmentRescheduleView,
+    GenerateMeetingLinkView,
     TherapistListView,
     TherapistDetailView,
     AppointmentListCreateView,
@@ -19,4 +20,9 @@ urlpatterns = [
     path("appointments/<uuid:pk>/", AppointmentDetailView.as_view(), name="appointment-detail"),
     path("appointments/<uuid:pk>/cancel/", CancelAppointmentView.as_view(), name="appointment-cancel"),
     path("appointments/<uuid:pk>/reschedule/", AppointmentRescheduleView.as_view(), name="appointment-reschedule"),
+     path(
+        "appointments/<uuid:pk>/generate-meeting-link/",
+        GenerateMeetingLinkView.as_view(),
+        name="appointment-generate-meeting-link"
+    ),
 ]
