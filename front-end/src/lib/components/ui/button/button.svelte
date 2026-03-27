@@ -2,14 +2,30 @@
 	import { cn } from "$lib/utils";
 	import { buttonVariants, type ButtonSize, type ButtonVariant } from "./variants";
 
-	export let variant: ButtonVariant = "default";
-	export let size: ButtonSize = "default";
-	export let href: string | undefined = undefined;
-	export let type: "button" | "submit" | "reset" = "button";
-	export let disabled: boolean | undefined = undefined;
-	export let className = "";
-	export { className as class };
-	export let ref: HTMLButtonElement | HTMLAnchorElement | null = null;
+	
+	interface Props {
+		variant?: ButtonVariant;
+		size?: ButtonSize;
+		href?: string | undefined;
+		type?: "button" | "submit" | "reset";
+		disabled?: boolean | undefined;
+		class?: string;
+		ref?: HTMLButtonElement | HTMLAnchorElement | null;
+		children?: import('svelte').Snippet;
+		[key: string]: any
+	}
+
+	let {
+		variant = "default",
+		size = "default",
+		href = undefined,
+		type = "button",
+		disabled = undefined,
+		class: className = "",
+		ref = $bindable(null),
+		children,
+		...rest
+	}: Props = $props();
 </script>
 
 {#if href}
@@ -21,9 +37,9 @@
 		aria-disabled={disabled}
 		role={disabled ? "link" : undefined}
 		tabindex={disabled ? -1 : undefined}
-		{...$$restProps}
+		{...rest}
 	>
-		<slot />
+		{@render children?.()}
 	</a>
 {:else}
 	<button
@@ -32,8 +48,8 @@
 		class={cn(buttonVariants({ variant, size }), className)}
 		{type}
 		{disabled}
-		{...$$restProps}
+		{...rest}
 	>
-		<slot />
+		{@render children?.()}
 	</button>
 {/if}

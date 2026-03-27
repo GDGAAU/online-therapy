@@ -5,9 +5,6 @@
 
   const dispatch = createEventDispatcher<{ click: MouseEvent }>();
 
-  export let variant: 'default' | 'outline' | 'ghost' | 'secondary' | 'destructive' = 'default';
-  export let size: 'sm' | 'md' | 'lg' | 'icon' = 'md';
-  export let className: string = '';
 
   const variants: Record<typeof variant, string> = {
     default: 'bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50',
@@ -24,8 +21,25 @@
     icon: 'h-10 w-10 rounded-full'
   };
 
-  export let type: HTMLButtonAttributes['type'] = 'button';
-  export let disabled: HTMLButtonAttributes['disabled'] = false;
+  interface Props {
+    variant?: 'default' | 'outline' | 'ghost' | 'secondary' | 'destructive';
+    size?: 'sm' | 'md' | 'lg' | 'icon';
+    className?: string;
+    type?: HTMLButtonAttributes['type'];
+    disabled?: HTMLButtonAttributes['disabled'];
+    children?: import('svelte').Snippet;
+    [key: string]: any
+  }
+
+  let {
+    variant = 'default',
+    size = 'md',
+    className = '',
+    type = 'button',
+    disabled = false,
+    children,
+    ...rest
+  }: Props = $props();
 </script>
 
 <button
@@ -37,8 +51,8 @@
     sizes[size],
     className
   )}
-  on:click={(event) => dispatch('click', event)}
-  {...$$restProps}
+  onclick={(event) => dispatch('click', event)}
+  {...rest}
 >
-  <slot />
+  {@render children?.()}
 </button>
