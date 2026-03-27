@@ -13,6 +13,7 @@
   import { env } from '$env/dynamic/public';
   import Header from '$lib/components/layout/Header.svelte';
   import '../app.css';
+  import { page } from '$app/stores';
 
   interface Props {
     data: any; 
@@ -37,7 +38,9 @@
 
 <Toaster position="top-right" richColors closeButton />
 
-<Header />
+{#if $page.url.pathname !== '/dashboard'}
+  <Header />
+{/if}
 
 <main>
   {@render children?.()}
