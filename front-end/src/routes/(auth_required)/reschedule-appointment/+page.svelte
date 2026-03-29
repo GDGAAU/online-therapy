@@ -9,8 +9,27 @@
   import type { Appointment, Therapist } from '$lib/types';
   import { therapyApi } from '$lib/api';
 
-  let therapist: Therapist | null = null;
-  let appointment: Appointment | null = null;
+  let therapist = $state<Therapist | null>({
+    id: 'f0a12264-b6cf-4dd5-9e5a-bfb95aa3ad6d',
+    name: 'Dr. Lena Whitmore',
+    specialties: [{ id: 's1', name: 'Psychotherapy', slug: 'psychotherapy' }],
+    years_of_experience: 11,
+    is_available: true,
+    consultation_fee: '120.00',
+    avatar_url: null
+  });
+  let appointment = $state<Appointment | null>({
+    id: 'a1',
+    therapist: 'f0a12264-b6cf-4dd5-9e5a-bfb95aa3ad6d',
+    therapist_name: 'Dr. Lena Whitmore',
+    therapist_specialty: ['Psychotherapy'],
+    status: 'confirmed',
+    appointment_type: 'video',
+    scheduled_at: new Date().toISOString(),
+    duration_minutes: 50,
+    reason: 'Follow-up support',
+    created_at: new Date().toISOString()
+  });
 
   let selectedDate = $state('');
   let selectedTime = $state('');
@@ -68,12 +87,13 @@
 <div class="min-h-screen bg-gray-50">
   <!-- Header -->
   <header class="px-4 py-3 flex items-center sticky top-0 z-10">
-    <Icon
-      name="arrow-left"
-      class="text-2xl text-gray-700 cursor-pointer hover:text-gray-900"
-      size={24}
-      onclick={goBack}
-    />
+    <button type="button" class="cursor-pointer" onclick={goBack} aria-label="Go back">
+      <Icon
+        name="arrow-left"
+        class="text-2xl text-gray-700 hover:text-gray-900"
+        size={24}
+      />
+    </button>
     <h1 class="flex-1 text-center text-lg font-bold text-[#3870FF]">Reschedule Appointment</h1>
     <div class="w-6"></div> 
   </header>
@@ -91,7 +111,7 @@
           </div>
           <div class="flex gap-4 items-center">
             <span class="text-sm text-black">Specialty:</span>
-            <span class="font-medium text-black">{therapist.specialty}</span>
+            <span class="font-medium text-black">{therapist.specialties.map((s) => s.name).join(', ')}</span>
           </div>
           <div class="flex gap-4 items-center">
             <span class="text-sm text-black">Date & Time:</span>
@@ -146,7 +166,7 @@
           </div>
           <div class="flex gap-4 items-center">
             <span class="text-sm text-black">Specialty:</span>
-            <span class="font-medium text-black">{therapist.specialty}</span>
+            <span class="font-medium text-black">{therapist.specialties.map((s) => s.name).join(', ')}</span>
           </div>
           <div class="flex gap-4 items-center">
             <span class="text-sm text-black">New Date:</span>

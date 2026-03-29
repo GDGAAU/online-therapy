@@ -164,6 +164,9 @@
                   <p class="text-sm text-black/60 truncate">
                     {therapist.specialties.map((s) => s.name).join(', ') || 'General Medicine'}
                   </p>
+                  <a href={`/therapist/${therapist.id}`} class="text-xs text-[#3870FF] hover:underline">
+                    View profile
+                  </a>
                   <p class="text-xs text-black/40 mt-0.5">
                     {therapist.years_of_experience} years experience
                   </p>

@@ -1,6 +1,6 @@
 <script>
     import Button from "$lib/components/ui/button/button.svelte";
-    import { authStore } from "@";
+    import { authStore } from "$lib/stores/auth";
     let { clicked = $bindable() } = $props();
     let image = $state(false);
     function onclick() {
@@ -25,7 +25,7 @@
             {/if}
         </div>
         <div>
-            <h1 class="font-bold">{authStore.user}</h1>
+            <h1 class="font-bold">{$authStore.user?.first_name ?? 'Patient'}</h1>
             <p>Patient</p>
         </div>
     </div>

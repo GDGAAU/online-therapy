@@ -35,6 +35,7 @@ export interface MessageResponse {
 export interface UserProfile {
   id: string;
   email: string;
+  user_type: "patient" | "therapist" | "admin";
   first_name: string;
   last_name: string;
   avatar_url: string | null;

@@ -84,13 +84,19 @@ export const isAuthenticated = derived(
   ($auth) => $auth.user !== null,
 );
 
+export function getDashboardRoute(user: UserProfile): string {
+  if (user.user_type === "admin") return "/admin-dashboard";
+  if (user.user_type === "therapist") return "/therapist-dashboard";
+  return "/dashboard";
+}
+
 // ─── Auth Actions ─────────────────────────────────────────────
 
 export async function login(email: string, password: string): Promise<void> {
   await authApi.login({ email, password });
   const user = await authApi.getMe();
   authStore.setUser(user);
-  await goto("/dashboard");
+  await goto(getDashboardRoute(user));
 }
 
 export async function logout(): Promise<void> {

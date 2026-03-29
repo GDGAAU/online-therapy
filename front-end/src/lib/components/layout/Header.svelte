@@ -5,8 +5,19 @@
   import { page } from "$app/stores";
   import { toggleSidebar } from "$lib/stores/ui";
 
-  let isDashboardPage = $derived($page.url.pathname.startsWith('/dashboard'));
+  let isDashboardPage = $derived(
+    $page.url.pathname.startsWith('/dashboard') ||
+      $page.url.pathname.startsWith('/therapist-dashboard') ||
+      ($page.url.pathname.startsWith('/calendar') && $authStore.user?.user_type === 'therapist')
+  );
   let mobileMenuOpen = $state(false);
+  let dashboardHref = $derived(
+    $authStore.user?.user_type === 'admin'
+      ? '/admin-dashboard'
+      : $authStore.user?.user_type === 'therapist'
+        ? '/therapist-dashboard'
+        : '/dashboard'
+  );
 </script>
 
 <header class="sticky top-0 z-40 w-full border-b border-blue-100 bg-white/95 backdrop-blur">
@@ -50,7 +61,7 @@
       <a href="/blog" class="hover:text-blue-600">Blog</a>
       <a href="/search" class="hover:text-blue-600">Find a therapist</a>
       {#if $authStore.user}
-        <a href="/dashboard" class="hover:text-blue-600">Dashboard</a>
+        <a href={dashboardHref} class="hover:text-blue-600">Dashboard</a>
       {/if}
     </nav>
 
@@ -165,7 +176,7 @@
           Appointments
         </a>
         {#if $authStore.user}
-          <a href="/dashboard" class="hover:text-blue-600" onclick={() => (mobileMenuOpen = false)}>
+          <a href={dashboardHref} class="hover:text-blue-600" onclick={() => (mobileMenuOpen = false)}>
             Dashboard
           </a>
         {/if}

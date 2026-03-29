@@ -14,6 +14,7 @@
   import { env } from '$env/dynamic/public';
   import Header from '$lib/components/layout/Header.svelte';
   import Sidebar from './(auth_required)/dashboard/components/Sidebar.svelte';
+  import TherapistSidebar from './(auth_required)/therapist-dashboard/components/Sidebar.svelte';
   import '../app.css';
   import { page } from '$app/stores';
 
@@ -26,11 +27,16 @@
   let { data, params, children }: Props = $props();
 
   let stateSnapshot = $derived({ data, params });
-  let isDashboardRoute = $derived($page.url.pathname.startsWith('/dashboard'));
+  let isUserDashboardRoute = $derived($page.url.pathname.startsWith('/dashboard'));
+  let isTherapistDashboardRoute = $derived(
+    $page.url.pathname.startsWith('/therapist-dashboard') ||
+      ($page.url.pathname.startsWith('/calendar') && $authStore.user?.user_type === 'therapist')
+  );
+  let isSidebarRoute = $derived(isUserDashboardRoute || isTherapistDashboardRoute);
 
   $effect(() => {
     if (!browser) return;
-    document.body.classList.toggle('overflow-hidden', isDashboardRoute && $sidebarOpen);
+  document.body.classList.toggle('overflow-hidden', isSidebarRoute && $sidebarOpen);
 
     return () => {
       document.body.classList.remove('overflow-hidden');
@@ -52,8 +58,12 @@
 
 <Header />
 
-{#if isDashboardRoute}
-  <Sidebar bind:clicked={$sidebarOpen} />
+{#if isSidebarRoute}
+  {#if isUserDashboardRoute}
+    <Sidebar bind:clicked={$sidebarOpen} />
+  {:else if isTherapistDashboardRoute}
+    <TherapistSidebar bind:clicked={$sidebarOpen} />
+  {/if}
 
   {#if $sidebarOpen}
     <button
