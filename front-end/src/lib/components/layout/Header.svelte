@@ -8,6 +8,7 @@
   let isDashboardPage = $derived(
     $page.url.pathname.startsWith('/dashboard') ||
       $page.url.pathname.startsWith('/therapist-dashboard') ||
+      ($page.url.pathname.startsWith('/admin-dashboard') && $authStore.user?.user_type === 'admin') ||
       ($page.url.pathname.startsWith('/calendar') && $authStore.user?.user_type === 'therapist')
   );
   let mobileMenuOpen = $state(false);

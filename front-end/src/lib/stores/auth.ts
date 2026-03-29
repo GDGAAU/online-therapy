@@ -99,6 +99,13 @@ export async function login(email: string, password: string): Promise<void> {
   await goto(getDashboardRoute(user));
 }
 
+export async function loginWithGoogle(idToken: string): Promise<void> {
+  await authApi.googleLogin(idToken);
+  const user = await authApi.getMe();
+  authStore.setUser(user);
+  await goto(getDashboardRoute(user));
+}
+
 export async function logout(): Promise<void> {
   await authApi.logout();
   authStore.clear();

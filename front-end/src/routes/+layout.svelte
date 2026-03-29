@@ -15,6 +15,7 @@
   import Header from '$lib/components/layout/Header.svelte';
   import Sidebar from './(auth_required)/dashboard/components/Sidebar.svelte';
   import TherapistSidebar from './(auth_required)/therapist-dashboard/components/Sidebar.svelte';
+  import AdminSidebar from './(auth_required)/admin-dashboard/components/Sidebar.svelte';
   import '../app.css';
   import { page } from '$app/stores';
 
@@ -32,7 +33,12 @@
     $page.url.pathname.startsWith('/therapist-dashboard') ||
       ($page.url.pathname.startsWith('/calendar') && $authStore.user?.user_type === 'therapist')
   );
-  let isSidebarRoute = $derived(isUserDashboardRoute || isTherapistDashboardRoute);
+  let isAdminDashboardRoute = $derived(
+    $page.url.pathname.startsWith('/admin-dashboard') && $authStore.user?.user_type === 'admin'
+  );
+  let isSidebarRoute = $derived(
+    isUserDashboardRoute || isTherapistDashboardRoute || isAdminDashboardRoute
+  );
 
   $effect(() => {
     if (!browser) return;
@@ -63,6 +69,8 @@
     <Sidebar bind:clicked={$sidebarOpen} />
   {:else if isTherapistDashboardRoute}
     <TherapistSidebar bind:clicked={$sidebarOpen} />
+  {:else if isAdminDashboardRoute}
+    <AdminSidebar bind:clicked={$sidebarOpen} />
   {/if}
 
   {#if $sidebarOpen}
