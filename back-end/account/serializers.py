@@ -6,6 +6,7 @@ Profile serializers used by custom profile endpoints and djoser user views.
 
 from rest_framework import serializers
 from djoser.serializers import UserCreateSerializer as DjoserUserCreateSerializer
+from djoser.serializers import UserSerializer as DjoserUserSerializer
 
 from .models import Profile, CustomUser
 
@@ -79,3 +80,45 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ["first_name", "last_name", "bio", "phone_number", "date_of_birth", "avatar"]
+
+
+class UserSerializer(DjoserUserSerializer):
+    """Current user payload enriched with profile fields and inferred user type."""
+
+    first_name = serializers.CharField(source="profile.first_name", read_only=True)
+    last_name = serializers.CharField(source="profile.last_name", read_only=True)
+    avatar_url = serializers.SerializerMethodField()
+    bio = serializers.CharField(source="profile.bio", read_only=True)
+    phone_number = serializers.CharField(source="profile.phone_number", read_only=True)
+    date_of_birth = serializers.DateField(source="profile.date_of_birth", read_only=True)
+    user_type = serializers.SerializerMethodField()
+
+    class Meta(DjoserUserSerializer.Meta):
+        model = CustomUser
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "avatar_url",
+            "bio",
+            "phone_number",
+            "date_of_birth",
+            "user_type",
+        )
+
+    def get_avatar_url(self, obj) -> str | None:
+        profile = getattr(obj, "profile", None)
+        if profile and profile.avatar:
+            request = self.context.get("request")
+            return request.build_absolute_uri(profile.avatar.url) if request else profile.avatar.url
+        return None
+
+    def get_user_type(self, obj) -> str:
+        if obj.is_staff and obj.is_superuser:
+            return "admin"
+
+        if obj.is_staff:
+            return "therapist"
+
+        return "patient"

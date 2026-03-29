@@ -180,8 +180,8 @@ DJOSER = {
     "PASSWORD_RESET_CONFIRM_URL": "reset-password/{uid}/{token}",
     "SERIALIZERS": {
         "user_create": "account.serializers.UserCreateSerializer",
-        "user": "djoser.serializers.UserSerializer",
-        "current_user": "djoser.serializers.UserSerializer",
+        "user": "account.serializers.UserSerializer",
+        "current_user": "account.serializers.UserSerializer",
     },
 }
 
@@ -208,8 +208,8 @@ SPECTACULAR_SETTINGS = {
 }
 
 # ─── Google OAuth ────────────────────────────────────────────
-GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
-GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "").strip()
 
 # ─── Email ──────────────────────────────────────────────────
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
