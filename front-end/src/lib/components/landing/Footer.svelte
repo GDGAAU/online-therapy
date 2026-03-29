@@ -69,24 +69,28 @@
                 <a
                     href="https://facebook.com"
                     class="bg-white/50 hover:bg-white/40 p-3 rounded-full transition-all"
+                    aria-label="Facebook"
                 >
                     <i class="fa-brands fa-facebook-f text-lg"></i>
                 </a>
                 <a
                     href="https://x.com"
                     class="bg-white/50 hover:bg-white/40 p-3 rounded-full transition-all"
+                    aria-label="X"
                 >
                     <i class="fa-brands fa-x-twitter text-lg"></i>
                 </a>
                 <a
                     href="https://linkedin.com"
                     class="bg-white/50 hover:bg-white/40 p-3 rounded-full transition-all"
+                    aria-label="LinkedIn"
                 >
                     <i class="fa-brands fa-linkedin-in text-lg"></i>
                 </a>
                 <a
                     href="https://instagram.com"
                     class="bg-white/50 hover:bg-white/40 p-3 rounded-full transition-all"
+                    aria-label="Instagram"
                 >
                     <i class="fa-brands fa-instagram text-lg"></i>
                 </a>

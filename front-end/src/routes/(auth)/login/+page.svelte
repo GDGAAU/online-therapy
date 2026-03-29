@@ -12,7 +12,7 @@
   import { zod } from 'sveltekit-superforms/adapters';
   import { toast } from 'svelte-sonner';
   import { goto } from '$app/navigation';
-  import { Eye, EyeOff, Loader2 } from 'lucide-svelte';
+  import Icon from '$lib/components/icons/Icon.svelte';
   import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
   import { Label } from '$lib/components/ui/label';
@@ -108,14 +108,14 @@
                 type="button"
                 variant="ghost"
                 size="icon"
-                on:click={() => (showPassword = !showPassword)}
+                onclick={() => (showPassword = !showPassword)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {#if showPassword}
-                  <EyeOff size={18} />
+                  <Icon name="eye-slash" size={18} />
                 {:else}
-                  <Eye size={18} />
+                  <Icon name="eye" size={18} />
                 {/if}
               </Button>
             </div>
@@ -134,7 +134,7 @@
 
           <Button type="submit" disabled={$submitting} className="w-full bg-blue-500 text-white shadow-md">
             {#if $submitting}
-              <Loader2 size={18} class="animate-spin" /> Logging in…
+              <Icon name="spinner" class="animate-spin" size={18} /> Logging in…
             {:else}
               Login
             {/if}

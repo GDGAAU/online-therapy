@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { toast } from 'svelte-sonner';
   import { goto } from '$app/navigation';
-  import { Search, Bell, ArrowLeft, Clock, Plus, Loader2 } from 'lucide-svelte';
+  import Icon from '$lib/components/icons/Icon.svelte';
   import { Button } from '$lib/components/ui/button';
   import { Card } from '$lib/components/ui/card';
   import { CardContent } from '$lib/components/ui/card-content';
@@ -123,12 +123,12 @@
 <div class="min-h-screen bg-gray-50">
   <!-- Header -->
   <header class="px-4 py-3 flex items-center sticky top-0 z-10">
-    <Button on:click={() => goto('/dashboard')} variant="ghost" size="icon" aria-label="Back">
-      <ArrowLeft class="text-gray-600" size={22} />
+    <Button onclick={() => goto('/dashboard')} variant="ghost" size="icon" aria-label="Back">
+      <Icon name="arrow-left" class="text-gray-600" size={22} />
     </Button>
     <h1 class="flex-1 text-center text-lg font-bold text-[#3870FF]">My Appointments</h1>
     <Button variant="ghost" size="icon" aria-label="Notifications">
-      <Bell class="text-gray-600" size={22} />
+      <Icon name="bell" class="text-gray-600" size={22} />
     </Button>
   </header>
 
@@ -144,23 +144,25 @@
     <!-- Filters -->
     <div class="flex overflow-x-auto space-x-3 px-4 py-3 scrollbar-hide">
       {#each filters as f}
-        <div
-          on:click={() => (activeFilter = f.value)}
-          class={`px-4 py-1.5 rounded-full whitespace-nowrap cursor-pointer text-sm font-semibold transition-all duration-200 ${
+        <button
+          type="button"
+          onclick={() => (activeFilter = f.value)}
+          aria-pressed={activeFilter === f.value}
+          class={`px-4 py-1.5 rounded-full whitespace-nowrap text-sm font-semibold transition-all duration-200 ${
             activeFilter === f.value
               ? 'bg-[#809CFF] text-white'
               : 'bg-transparent border border-[#809CFF] text-[#809CFF]'
           }`}
         >
           {f.label}
-        </div>
+        </button>
       {/each}
     </div>
 
     <!-- Loading -->
     {#if isLoading}
       <div class="flex justify-center py-16">
-        <Loader2 class="animate-spin text-blue-400" size={32} />
+        <Icon name="spinner" class="animate-spin text-blue-400" size={32} />
       </div>
 
     <!-- Empty State -->
@@ -178,8 +180,9 @@
         </div>
 
         <button
-          on:click={() => goto('/book-appointment')}
-          class="px-8 py-3 rounded-xl bg-gradient-to-r from-[#38B7FF] to-[#3870FF] text-white font-medium hover:opacity-90 transition-opacity shadow-md"
+          type="button"
+          onclick={() => goto('/book-appointment')}
+          class="px-8 py-3 rounded-xl bg-linear-to-r from-[#38B7FF] to-[#3870FF] text-white font-medium hover:opacity-90 transition-opacity shadow-md"
         >
           Book Your Appointment
         </button>
@@ -201,28 +204,28 @@
             </div>
 
             <div class="flex items-center gap-2 text-black/40 text-sm mb-4">
-              <Clock size={14} class="text-black/40" />
+              <Icon name="clock" class="text-black/40" size={14} />
               {formatDate(appt.scheduled_at)}
               ({appt.duration_minutes}min, {appt.appointment_type})
             </div>
 
             {#if appt.status === 'completed'}
-              <Button class="w-full bg-gradient-to-r from-[#38B7FF] to-[#3870FF] text-white hover:opacity-90 transition-opacity rounded-xl">
+              <Button class="w-full bg-linear-to-r from-[#38B7FF] to-[#3870FF] text-white hover:opacity-90 transition-opacity rounded-xl">
                 View Medical Record
               </Button>
 
             {:else if canCancel(appt)}
               <div class="flex gap-2">
                 <Button
-                  on:click={() => goto(`/reschedule-appointment/${appt.id}`)}
-                  class="flex-1 bg-gradient-to-r from-[#38B7FF] to-[#3870FF] text-white hover:opacity-90 transition-opacity rounded-xl"
+                  onclick={() => goto(`/reschedule-appointment/${appt.id}`)}
+                  class="flex-1 bg-linear-to-r from-[#38B7FF] to-[#3870FF] text-white hover:opacity-90 transition-opacity rounded-xl"
                 >
                   Reschedule
                 </Button>
 
                 <Button
-                  on:click={() => (cancelTarget = appt)}
-                  class="flex-1 bg-transparent border-2 border-transparent bg-gradient-to-r from-[#38B7FF] to-[#3870FF] text-transparent hover:opacity-90 transition-opacity rounded-xl py-2 px-4 font-medium"
+                  onclick={() => (cancelTarget = appt)}
+                  class="flex-1 bg-transparent border-2 border-transparent bg-linear-to-r from-[#38B7FF] to-[#3870FF] text-transparent hover:opacity-90 transition-opacity rounded-xl py-2 px-4 font-medium"
                   style="background-image: linear-gradient(to right, #38B7FF, #3870FF); -webkit-background-clip: text; background-clip: text; border-image: linear-gradient(to right, #38B7FF, #3870FF) 1; border-image-slice: 1; border-radius: 0.75rem;"
                 >
                   Cancel
@@ -231,8 +234,8 @@
 
             {:else if appt.status === 'cancelled'}
               <Button
-                on:click={() => goto('/book-appointment')}
-                class="w-full bg-gradient-to-r from-[#38B7FF] to-[#3870FF] text-white hover:opacity-90 transition-opacity rounded-xl"
+                onclick={() => goto('/book-appointment')}
+                class="w-full bg-linear-to-r from-[#38B7FF] to-[#3870FF] text-white hover:opacity-90 transition-opacity rounded-xl"
               >
                 Book Again
               </Button>
@@ -246,10 +249,10 @@
   <!-- FAB -->
   <div class="fixed bottom-6 right-6">
     <Button
-      on:click={() => goto('/book-appointment')}
-      class="rounded-full px-5 py-3 lg:px-8 lg:py-4 lg:text-lg shadow-lg bg-gradient-to-r from-[#38B7FF] to-[#3870FF] text-white hover:opacity-90 transition-opacity"
+      onclick={() => goto('/book-appointment')}
+  class="rounded-full px-5 py-3 lg:px-8 lg:py-4 lg:text-lg shadow-lg bg-linear-to-r from-[#38B7FF] to-[#3870FF] text-white hover:opacity-90 transition-opacity"
     >
-      <Plus size={18} class="mr-1 lg:w-5 lg:h-5" />
+  <Icon name="plus" class="mr-1" size={18} />
       Book Now
     </Button>
   </div>
@@ -267,12 +270,12 @@
           <strong>{formatDate(cancelTarget.scheduled_at)}</strong>?
         </p>
         <div class="flex gap-3">
-          <Button on:click={() => (cancelTarget = null)} variant="outline" className="flex-1">
+          <Button onclick={() => (cancelTarget = null)} variant="outline" className="flex-1">
             Keep it
           </Button>
-          <Button on:click={cancelAppointment} disabled={isCancelling} variant="destructive" className="flex-1">
+          <Button onclick={cancelAppointment} disabled={isCancelling} variant="destructive" className="flex-1">
             {#if isCancelling}
-              <Loader2 size={16} class="animate-spin" />
+              <Icon name="spinner" class="animate-spin" size={16} />
             {/if}
             Cancel
           </Button>

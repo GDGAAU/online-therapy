@@ -1,23 +1,21 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { Calendar, Clock } from 'lucide-svelte';
   import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
   import { Card } from '$lib/components/ui/card';
   import { CardContent } from '$lib/components/ui/card-content';
-  import { faAngleLeft } from "@fortawesome/free-solid-svg-icons";
-  import { FontAwesomeIcon } from "@fortawesome/svelte-fontawesome";
+  import Icon from '$lib/components/icons/Icon.svelte';
   import type { Appointment, Therapist } from '$lib/types';
   import { therapyApi } from '$lib/api';
 
   let therapist: Therapist | null = null;
   let appointment: Appointment | null = null;
 
-  let selectedDate = '';
-  let selectedTime = '';
+  let selectedDate = $state('');
+  let selectedTime = $state('');
 
-  let timeSlots: { time: string; available: boolean }[] = [];
+  let timeSlots = $state<{ time: string; available: boolean }[]>([]);
 
   onMount(async () => {
     try {
@@ -70,10 +68,11 @@
 <div class="min-h-screen bg-gray-50">
   <!-- Header -->
   <header class="px-4 py-3 flex items-center sticky top-0 z-10">
-    <FontAwesomeIcon 
-      icon={faAngleLeft} 
-      class="text-2xl text-gray-700 cursor-pointer hover:text-gray-900" 
-      on:click={goBack}
+    <Icon
+      name="arrow-left"
+      class="text-2xl text-gray-700 cursor-pointer hover:text-gray-900"
+      size={24}
+      onclick={goBack}
     />
     <h1 class="flex-1 text-center text-lg font-bold text-[#3870FF]">Reschedule Appointment</h1>
     <div class="w-6"></div> 
@@ -119,7 +118,8 @@
         <div class="grid grid-cols-2 gap-3">
           {#each timeSlots as slot}
             <button
-              on:click={() => slot.available && (selectedTime = slot.time)}
+              type="button"
+              onclick={() => slot.available && (selectedTime = slot.time)}
               disabled={!slot.available}
               class={`py-3 px-2 rounded-xl text-sm font-medium transition-all w-full
                 ${slot.available 
@@ -162,14 +162,16 @@
       <!-- Action Buttons -->
       <div class="flex gap-4 pt-4">
         <button
-          on:click={handleReschedule}
+          type="button"
+          onclick={handleReschedule}
           disabled={!selectedDate || !selectedTime}
-          class="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#38B7FF] to-[#3870FF] text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+          class="flex-1 py-3 rounded-xl bg-linear-to-r from-[#38B7FF] to-[#3870FF] text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Reschedule Appointment
         </button>
         <button
-          on:click={handleCancel}
+          type="button"
+          onclick={handleCancel}
           class="flex-1 py-3 rounded-xl border-2 border-[#656565]/30 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
         >
           Cancel

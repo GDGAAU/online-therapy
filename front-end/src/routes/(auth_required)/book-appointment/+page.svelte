@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { toast } from 'svelte-sonner';
   import { goto } from '$app/navigation';
-  import { ArrowLeft, UserCircle, Loader2 } from 'lucide-svelte';
+  import Icon from '$lib/components/icons/Icon.svelte';
   import { superForm } from 'sveltekit-superforms';
   import { zod } from 'sveltekit-superforms/adapters';
   import { therapyApi, ApiError } from '$lib/api';
@@ -107,8 +107,8 @@
 
 <div class="min-h-screen bg-gray-50">
  <header class="border-gray-100 px-4 py-3 flex items-center sticky top-0 z-10">
-  <Button on:click={() => goto('/dashboard')} variant="ghost" size="icon" aria-label="Back">
-    <ArrowLeft class="text-gray-600" size={22} />
+  <Button onclick={() => goto('/dashboard')} variant="ghost" size="icon" aria-label="Back">
+    <Icon name="arrow-left" class="text-gray-600" size={22} />
   </Button>
   <h1 class="flex-1 text-center text-lg font-bold text-[#3870FF]">Book Appointment</h1>
 </header>
@@ -123,22 +123,24 @@
   <!-- FILTERS -->
   <div class="flex overflow-x-auto space-x-3 px-4 py-3 scrollbar-hide">
     {#each specialties as s}
-      <div
-        class={`px-4 py-1.5 rounded-full whitespace-nowrap cursor-pointer text-sm font-semibold transition-all duration-200 ${
+      <button
+        type="button"
+        aria-pressed={activeSpecialty === s}
+        class={`px-4 py-1.5 rounded-full whitespace-nowrap text-sm font-semibold transition-all duration-200 ${
           activeSpecialty === s
             ? 'bg-[#809CFF] text-white'  
             : 'bg-[#ECF1FF] border border-[#809CFF] text-[#809CFF]' 
         }`}
-        on:click={() => activeSpecialty = s}
+        onclick={() => (activeSpecialty = s)}
       >
         {s === 'all' ? 'All' : s}
-      </div>
+      </button>
     {/each}
   </div>
 
   {#if isLoading}
     <div class="flex justify-center py-16">
-      <Loader2 class="animate-spin text-blue-400" size={32} />
+  <Icon name="spinner" class="animate-spin text-blue-400" size={32} />
     </div>
 
   {:else if filteredTherapists.length === 0}
@@ -151,8 +153,8 @@
       {#each filteredTherapists as therapist (therapist.id)}
         <div class="bg-[#ECF1FF] border border-[#656565]/30 shadow-sm rounded-xl p-8 w-full">
           <div class="flex items-start gap-3 mb-8">
-            <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center flex-shrink-0">
-              <UserCircle class="text-black" size={24} />
+            <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shrink-0">
+              <Icon name="user-circle" class="text-black" size={24} />
             </div>
 
             <div class="flex-1 min-w-0">
@@ -181,9 +183,9 @@
           </div>
 
           <Button
-            on:click={() => openBookingModal(therapist)}
+            onclick={() => openBookingModal(therapist)}
             disabled={!therapist.is_available}
-            class="w-full bg-gradient-to-r from-[#38B7FF] to-[#3870FF] text-white hover:opacity-90 transition-opacity"
+            class="w-full bg-linear-to-r from-[#38B7FF] to-[#3870FF] text-white hover:opacity-90 transition-opacity"
             variant={therapist.is_available ? 'default' : 'secondary'}
           >
             {therapist.is_available ? 'Book Appointment' : 'Unavailable'}
@@ -232,12 +234,12 @@
           </div>
 
           <div class="flex gap-3">
-            <Button type="button" on:click={() => (showBookingModal = false)} className="flex-1" variant="outline">
+            <Button type="button" onclick={() => (showBookingModal = false)} className="flex-1" variant="outline">
               Cancel
             </Button>
             <Button type="submit" disabled={$submitting} className="flex-1">
               {#if $submitting}
-                <Loader2 size={16} class="animate-spin" />
+                <Icon name="spinner" class="animate-spin" size={16} />
               {/if}
               Confirm
             </Button>

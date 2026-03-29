@@ -3,7 +3,7 @@
   import { zod } from 'sveltekit-superforms/adapters';
   import { toast } from 'svelte-sonner';
   import { goto } from '$app/navigation';
-  import { Loader2, Eye, EyeOff, CheckCircle } from 'lucide-svelte';
+  import Icon from '$lib/components/icons/Icon.svelte';
   import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
   import { Label } from '$lib/components/ui/label';
@@ -61,14 +61,14 @@
       <Card className="text-center">
         <CardContent className="space-y-4">
         <div class="flex justify-center">
-          <CheckCircle class="text-green-500" size={56} />
+          <Icon name="check-circle" class="text-green-500" size={56} />
         </div>
         <h2 class="text-xl font-bold text-gray-900">Check your email!</h2>
         <p class="text-gray-500">
           We've sent a verification link to <strong>{$form.email}</strong>.
           Click the link to activate your account.
         </p>
-        <Button className="w-full" on:click={() => goto('/login')}>
+        <Button className="w-full" onclick={() => goto('/login')}>
           Back to Login
         </Button>
         </CardContent>
@@ -158,10 +158,14 @@
                   type="button"
                   variant="ghost"
                   size="icon"
-                  on:click={() => (showPassword = !showPassword)}
+                  onclick={() => (showPassword = !showPassword)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
                 >
-                  {#if showPassword}<EyeOff size={18} />{:else}<Eye size={18} />{/if}
+                  {#if showPassword}
+                    <Icon name="eye-slash" size={18} />
+                  {:else}
+                      <Icon name="eye" size={18} />
+                  {/if}
                 </Button>
               </div>
               {#if $errors.password}
@@ -185,7 +189,7 @@
 
             <Button type="submit" disabled={$submitting} className="w-full bg-blue-500 text-white">
               {#if $submitting}
-                <Loader2 size={18} class="animate-spin" /> Creating account…
+                <Icon name="spinner" class="animate-spin" size={18} /> Creating account…
               {:else}
                 Sign up
               {/if}

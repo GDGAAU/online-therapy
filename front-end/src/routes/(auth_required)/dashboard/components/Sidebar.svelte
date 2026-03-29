@@ -19,7 +19,7 @@
     >
         <div class="rounded-full p-1.5">
             {#if image}
-                <img src="" alt="profile image" class="rounded-full" />
+                <img src="" alt="" aria-hidden="true" class="rounded-full" />
             {:else}
                 <i class="fa-regular fa-circle-user text-4xl"></i>
             {/if}
@@ -93,17 +93,19 @@
     </nav>
 
     <div
-        class="bg-[#ECF1FF] border border-[#809CFF] rounded-xl space-y-2 mt-4 mx-10 p-3"
+        class="bg-[#ECF1FF] border border-[#809CFF] rounded-xl mt-4 mx-4 p-4 space-y-3 text-left"
     >
-        <div class="flex justify-center gap-4 items-center">
-            <i class="fa-solid fa-comment text-xl"></i>
+        <div class="flex items-center gap-3">
+            <i class="fa-solid fa-comment text-lg"></i>
             <p class="font-semibold">AI Assistant</p>
         </div>
 
-        <p class="text-[#656565]">Ask me about appointments,medications.</p>
+    <p class="text-sm text-[#656565] wrap-break-word">
+            Ask me about appointments, medications.
+        </p>
 
-        <Button class="bg-[#3870FF] flex justify-center w-full">
-            <i class="fa-solid fa-comment text-xl"></i>
+        <Button class="bg-[#3870FF] flex items-center justify-center w-full gap-2">
+            <i class="fa-solid fa-comment text-base"></i>
             <p>Start Chat</p>
         </Button>
     </div>

@@ -10,7 +10,7 @@
   <title>Error — Online Therapy</title>
 </svelte:head>
 
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+<div class="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
   <Card className="max-w-md w-full text-center shadow-xl">
     <CardContent className="p-8 space-y-6">
     <!-- Error code -->
@@ -30,11 +30,11 @@
 
     <!-- Actions -->
     <div class="flex gap-3 justify-center">
-      <Button variant="outline" on:click={() => window.history.back()}>
+      <Button variant="outline" onclick={() => window.history.back()}>
         Go Back
       </Button>
-      <Button on:click={() => goto('/dashboard')}>
-        Go Home
+      <Button onclick={() => goto('/dashboard')}>
+        Back to Dashboard
       </Button>
     </div>
     </CardContent>

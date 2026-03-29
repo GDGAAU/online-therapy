@@ -1,10 +1,12 @@
 <script lang="ts">
-  import { Search, X } from 'lucide-svelte';
+  import Icon from '$lib/components/icons/Icon.svelte';
   import { Input } from '$lib/components/ui/input';
   
-  export let value: string = '';
-  export let placeholder: string = 'Search...';
-  export let onSearch: (query: string) => void = () => {};
+  let { value = $bindable(''), placeholder = 'Search...', onSearch = () => {} } = $props<{
+    value?: string;
+    placeholder?: string;
+    onSearch?: (query: string) => void;
+  }>();
   
   
   function handleClear() {
@@ -18,8 +20,8 @@
   }
 </script>
 
-<form on:submit={handleSubmit} class="relative w-full">
-  <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-black" size={18} />
+<form onsubmit={handleSubmit} class="relative w-full">
+  <Icon name="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-black" size={18} />
   
  <Input
   type="search"
@@ -30,11 +32,11 @@
   {#if value}
     <button
       type="button"
-      on:click={handleClear}
+      onclick={handleClear}
       class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
       aria-label="Clear search"
     >
-      <X size={16} />
+      <Icon name="xmark" size={16} />
     </button>
   {/if}
 </form>
