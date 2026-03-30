@@ -79,3 +79,8 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ["first_name", "last_name", "bio", "phone_number", "date_of_birth", "avatar"]
+
+
+
+class GoogleAuthSerializer(serializers.Serializer):
+    id_token = serializers.CharField()
