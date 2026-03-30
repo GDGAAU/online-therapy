@@ -22,7 +22,7 @@ from drf_spectacular.views import (
     SpectacularRedocView,
 )
 from djoser.views import UserViewSet
-from account.views import LogoutView
+from account.views import GoogleAuthView, LogoutView
 urlpatterns = [
   # Admin
   path("admin/", admin.site.urls),
@@ -34,6 +34,7 @@ urlpatterns = [
       name="auth-register",
   ),
   path("api/v1/auth/logout/", LogoutView.as_view(), name="auth-logout"),
+  path("api/v1/auth/google/", GoogleAuthView.as_view(), name="google-auth"),
   path("api/v1/auth/", include("djoser.urls")),
   path("api/v1/auth/", include("djoser.urls.jwt")),
   # API v1
