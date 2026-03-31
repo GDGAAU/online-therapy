@@ -14,3 +14,8 @@ class ArticleListSerializer(serializers.ModelSerializer):
             "posted_at",
             "reading_time",
         ]
+
+class ArticleDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Article
+        exclude = ["scraped_at", "content_hash"]
