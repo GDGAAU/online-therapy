@@ -1,9 +1,13 @@
+import uuid
+import hashlib
+
 from django.db import models
 from django.utils.text import slugify
-import hashlib
 
 
 class Article(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     CATEGORY_CHOICES = [
         ("anxiety", "Anxiety"),
         ("depression", "Depression"),
@@ -26,11 +30,14 @@ class Article(models.Model):
     posted_at = models.DateTimeField(null=True, blank=True)
 
     category = models.CharField(
-        max_length=50,
+        max_length=100,
         choices=CATEGORY_CHOICES,
         default="general"
     )
-    reading_time = models.PositiveIntegerField(help_text="Estimated reading time in minutes")
+
+    reading_time = models.PositiveIntegerField(
+        help_text="Estimated reading time in minutes"
+    )
 
     scraped_at = models.DateTimeField(auto_now_add=True)
     content_hash = models.CharField(max_length=64, unique=True)
@@ -49,5 +56,5 @@ class Article(models.Model):
 
         super().save(*args, **kwargs)
 
-    def str(self):
+    def __str__(self):
         return self.title
