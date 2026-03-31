@@ -45,6 +45,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "account.apps.AccountConfig",
     "therapy.apps.TherapyConfig",
+    "blog.apps.BlogConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
