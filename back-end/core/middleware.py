@@ -51,12 +51,15 @@ class RequestLoggingMiddleware:
         if settings.DEBUG and self._is_json(response):
             try:
                 data = json.loads(response.content)
-                data["_debug"] = {
-                    "executionTimeMs": f"{elapsed_ms:.2f}",
-                    **request._debug,
-                }
+                if isinstance(data, dict):
+                    data["_debug"] = {
+                        "executionTimeMs": f"{elapsed_ms:.2f}",
+                        **request._debug,
+                    }
+
                 response.content = json.dumps(data)
                 response["Content-Length"] = len(response.content)
+
             except (json.JSONDecodeError, AttributeError):
                 pass  # Never crash on debug injection failure
 
