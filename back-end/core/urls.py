@@ -39,6 +39,7 @@ urlpatterns = [
   path("api/v1/auth/", include("djoser.urls.jwt")),
   # API v1
   path("api/v1/therapy/", include("therapy.urls")),
+  path("api/v1/articles/", include("blog.urls")),
   path("api/v1/ai/", include("ai.urls")),
 
   # OpenAPI / Docs
