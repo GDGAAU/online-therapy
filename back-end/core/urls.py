@@ -40,6 +40,7 @@ urlpatterns = [
   # API v1
   path("api/v1/therapy/", include("therapy.urls")),
   path("api/v1/articles/", include("blog.urls")),
+  path("api/v1/ai/", include("ai.urls")),
 
   # OpenAPI / Docs
   path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
