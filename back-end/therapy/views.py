@@ -47,7 +47,7 @@ class TherapistListView(APIView):
         queryset = (
             Therapist.objects.select_related("user__profile")
             .prefetch_related("specialties")
-            .filter(is_available=True)
+            .filter(is_available=True, user__is_active=True)
         )
         # Filter by specialty slug
         specialty = request.query_params.get("specialty")
