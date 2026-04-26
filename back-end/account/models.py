@@ -109,7 +109,6 @@ class PasswordResetToken(models.Model):
     def is_expired(self) -> bool:
         return timezone.now() > self.expires_at
 
-
 class SocialAuth(models.Model):
     GOOGLE = "google"
     PROVIDER_CHOICES = [(GOOGLE, "Google")]
@@ -118,11 +117,13 @@ class SocialAuth(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="social_auths")
     provider = models.CharField(max_length=30, choices=PROVIDER_CHOICES)
     provider_user_id = models.CharField(max_length=255)
+
+    access_token = models.TextField(null=True, blank=True)
+    refresh_token = models.TextField(null=True, blank=True)
+    token_expires_at = models.DateTimeField(null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = _("social auth")
-        verbose_name_plural = _("social auths")
         unique_together = [("provider", "provider_user_id")]
-
 

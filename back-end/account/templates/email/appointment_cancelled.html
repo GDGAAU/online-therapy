@@ -1,0 +1,19 @@
+<h2>Appointment Cancelled</h2>
+
+<p>Hello,</p>
+
+<p>Your appointment has been cancelled.</p>
+
+<p>
+    Therapist: {{ appointment.therapist }}<br>
+    Date: {{ appointment.scheduled_at }}<br>
+    Type: {{ appointment.appointment_type }}
+</p>
+
+{% if appointment.cancellation_reason %}
+<p>
+    Reason: {{ appointment.cancellation_reason }}
+</p>
+{% endif %}
+
+<p>Thank you.</p>
