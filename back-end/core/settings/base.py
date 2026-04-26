@@ -21,6 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "insecure-default-for-dev-only")
 DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+NOTIFICATIONS_ENABLED = True
 
 # ─── Application Definition ─────────────────────────────────
 DJANGO_APPS = [

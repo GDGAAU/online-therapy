@@ -112,3 +112,71 @@ class CustomPasswordResetEmail(PasswordResetEmail):
         )
         email_message.attach_alternative(html_content, "text/html")
         email_message.send()
+
+
+# =========================
+# Appointment Notifications
+# =========================
+from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def send_appointment_email(event_type, appointment):
+    #  feature flag
+    if not getattr(settings, "NOTIFICATIONS_ENABLED", True):
+        return
+
+    patient_email = appointment.patient.email
+    therapist_email = appointment.therapist.user.email
+
+    subject = ""
+    context = {
+        "appointment": appointment
+    }
+
+    if event_type == "booked":
+        subject = "Appointment Booked"
+        template = "email/appointment_booked.html"
+
+    elif event_type == "cancelled":
+        subject = "Appointment Cancelled"
+        template = "email/appointment_cancelled.html"
+
+    elif event_type == "rescheduled":
+        subject = "Appointment Rescheduled"
+        template = "email/appointment_rescheduled.html"
+
+    elif event_type == "meeting_link":
+        subject = "Meeting Link Ready"
+        template = "email/meeting_link_ready.html"
+
+    #  missing event
+    elif event_type == "confirmed":
+        subject = "Appointment Confirmed"
+        template = "email/appointment_confirmed.html"
+
+    else:
+        return  # safety
+
+    html_content = render_to_string(template, context)
+    text_content = strip_tags(html_content)
+
+    #  unified sending + error handling
+    recipients = [patient_email]
+
+    if event_type in ["booked", "cancelled"]:
+        recipients.append(therapist_email)
+
+    for email in recipients:
+        try:
+            msg = EmailMultiAlternatives(
+                subject,
+                text_content,
+                to=[email],
+            )
+            msg.attach_alternative(html_content, "text/html")
+            msg.send()
+        except Exception as e:
+            logger.error(f"Email send failed for {email}: {e}")

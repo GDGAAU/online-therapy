@@ -110,10 +110,11 @@ class GoogleLoginView(APIView):
 
         provider_user_id = str(idinfo.get("sub") or "")
         if provider_user_id:
-            SocialAuth.objects.get_or_create(
+            SocialAuth.objects.update_or_create(
                 provider=SocialAuth.GOOGLE,
                 provider_user_id=provider_user_id,
-                defaults={"user": user},
+                defaults={"user": user,"access_token": request.data.get("access_token"), "refresh_token": request.data.get("refresh_token"), "token_expires_at": request.data.get("token_expires_at") or None},
+                
             )
 
         refresh = RefreshToken.for_user(user)

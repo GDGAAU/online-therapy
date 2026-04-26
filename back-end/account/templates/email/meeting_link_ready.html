@@ -1,0 +1,21 @@
+<h2>Meeting Link Ready</h2>
+
+<p>Hello,</p>
+
+<p>Your online session is ready.</p>
+
+<p>
+    Therapist: {{ appointment.therapist }}<br>
+    Date: {{ appointment.scheduled_at }}<br>
+</p>
+
+<p>
+    Join your session here:<br>
+    <a href="{{ appointment.meeting_link }}">
+        {{ appointment.meeting_link }}
+    </a>
+</p>
+
+<p>Please join on time.</p>
+
+<p>Thank you.</p>
