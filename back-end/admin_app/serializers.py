@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.db import transaction
 from django.db.utils import IntegrityError
 from account.models import CustomUser, Profile
-from therapy.models import Therapist, Specialty
+from therapy.models import Therapist, Specialty, Appointment
 
 
 class UserTypeField(serializers.SerializerMethodField):
@@ -160,6 +160,56 @@ class AdminTherapistSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+
+# ─── Admin Appointment Serializers ────────────────────────────────────────────
+
+
+class AdminAppointmentSerializer(serializers.ModelSerializer):
+    """Read-only serializer for admin appointment list / detail."""
+
+    patient_email = serializers.EmailField(source="patient.email", read_only=True)
+    patient_name = serializers.SerializerMethodField()
+    therapist_name = serializers.SerializerMethodField()
+    therapist_id = serializers.UUIDField(source="therapist.id", read_only=True)
+    patient_id = serializers.UUIDField(source="patient.id", read_only=True)
+
+    class Meta:
+        model = Appointment
+        fields = [
+            "id",
+            "patient_id",
+            "patient_email",
+            "patient_name",
+            "therapist_id",
+            "therapist_name",
+            "status",
+            "appointment_type",
+            "scheduled_at",
+            "duration_minutes",
+            "reason",
+            "cancellation_reason",
+            "meeting_link",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = fields
+
+    def get_patient_name(self, obj) -> str:
+        return obj.patient.profile.full_name if hasattr(obj.patient, "profile") else obj.patient.email
+
+    def get_therapist_name(self, obj) -> str:
+        return str(obj.therapist)
+
+
+class AdminAppointmentStatusSerializer(serializers.Serializer):
+    """Serializer for admin status override on appointments."""
+
+    status = serializers.ChoiceField(choices=Appointment.Status.choices)
+    reason = serializers.CharField(required=False, allow_blank=True, default="")
+
+
+# ─── Admin Therapist Update Serializer ────────────────────────────────────────
 
 
 class AdminTherapistUpdateSerializer(serializers.Serializer):
