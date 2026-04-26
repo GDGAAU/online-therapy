@@ -1,4 +1,3 @@
-"""account/admin.py"""
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
@@ -9,21 +8,58 @@ from .models import CustomUser, Profile, ActivationToken, PasswordResetToken, So
 @admin.register(CustomUser)
 class CustomUserAdmin(BaseUserAdmin):
     model = CustomUser
-    list_display = ("email", "is_active", "is_staff", "date_joined")
-    list_filter = ("is_active", "is_staff", "is_superuser")
+
+    # 🔹 Columns shown in list page
+    list_display = (
+        "email",
+        "is_active",
+        "is_staff",
+        "is_superuser",
+        "date_joined",
+    )
+
+    list_filter = (
+        "is_active",
+        "is_staff",
+        "is_superuser",
+    )
+
     search_fields = ("email",)
     ordering = ("-date_joined",)
+
     readonly_fields = ("id", "date_joined", "last_login")
 
+    # 🔹 View/Edit user form
     fieldsets = (
         (None, {"fields": ("id", "email", "password")}),
-        (_("Permissions"), {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
-        (_("Dates"), {"fields": ("last_login", "date_joined")}),
+
+        (_("Permissions"), {
+            "fields": (
+                "is_active",
+                "is_staff",
+                "is_superuser",
+                "groups",
+                "user_permissions",
+            )
+        }),
+
+        (_("Dates"), {
+            "fields": ("last_login", "date_joined")
+        }),
     )
+
+    # 🔹 Create user form (IMPORTANT FIX)
     add_fieldsets = (
         (None, {
             "classes": ("wide",),
-            "fields": ("email", "password1", "password2", "is_active"),
+            "fields": (
+                "email",
+                "password1",
+                "password2",
+                "is_active",
+                "is_staff",
+                "is_superuser",
+            ),
         }),
     )
 
@@ -38,6 +74,7 @@ class ProfileAdmin(admin.ModelAdmin):
 
     def full_name(self, obj):
         return obj.full_name
+
     full_name.short_description = "Name"
 
 
@@ -48,6 +85,7 @@ class ActivationTokenAdmin(admin.ModelAdmin):
 
     def is_expired(self, obj):
         return obj.is_expired
+
     is_expired.boolean = True
 
 

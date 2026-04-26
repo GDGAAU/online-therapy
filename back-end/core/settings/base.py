@@ -45,6 +45,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "account.apps.AccountConfig",
+    "admin_app.apps.AdminAppConfig",
     "therapy.apps.TherapyConfig",
     "blog.apps.BlogConfig",
     "ai.apps.AiConfig",
