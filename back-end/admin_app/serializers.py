@@ -5,6 +5,73 @@ from account.models import CustomUser, Profile
 from therapy.models import Therapist, Specialty
 
 
+class UserTypeField(serializers.SerializerMethodField):
+    """Field that returns user_type based on is_staff and is_superuser."""
+
+    def get_attribute(self, instance):
+        return instance
+
+    def to_representation(self, value):
+        if value.is_superuser:
+            return "admin"
+        elif value.is_staff:
+            return "therapist"
+        else:
+            return "patient"
+
+
+class UserAdminSerializer(serializers.ModelSerializer):
+    """Serializer for admin user management."""
+    user_type = UserTypeField(read_only=True)
+    first_name = serializers.CharField(source="profile.first_name", read_only=True)
+    last_name = serializers.CharField(source="profile.last_name", read_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "id",
+            "email",
+            "user_type",
+            "is_active",
+            "date_joined",
+            "last_login",
+            "first_name",
+            "last_name",
+        ]
+        read_only_fields = ["id", "email", "user_type", "date_joined", "last_login"]
+
+
+class UserAdminDetailSerializer(serializers.ModelSerializer):
+    """Detailed serializer for user detail view with profile info."""
+    user_type = UserTypeField(read_only=True)
+    first_name = serializers.CharField(source="profile.first_name")
+    last_name = serializers.CharField(source="profile.last_name")
+    phone_number = serializers.CharField(source="profile.phone_number", read_only=True)
+    avatar = serializers.ImageField(source="profile.avatar", read_only=True)
+    bio = serializers.CharField(source="profile.bio", read_only=True)
+    date_of_birth = serializers.DateField(source="profile.date_of_birth", read_only=True)
+    profile_created_at = serializers.DateTimeField(source="profile.created_at", read_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "id",
+            "email",
+            "user_type",
+            "is_active",
+            "date_joined",
+            "last_login",
+            "first_name",
+            "last_name",
+            "phone_number",
+            "avatar",
+            "bio",
+            "date_of_birth",
+            "profile_created_at",
+        ]
+        read_only_fields = ["id", "email", "user_type", "date_joined", "last_login", "profile_created_at"]
+
+
 class AdminTherapistCreateSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)

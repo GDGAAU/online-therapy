@@ -7,12 +7,15 @@ from django.db import transaction
 from django.db.models import Q
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiResponse
 
-from .permissions import IsAdminOnly
+from .permissions import IsAdminOnly, IsAdminUser
 from .serializers import (
     AdminTherapistCreateSerializer,
     AdminTherapistSerializer,
     AdminTherapistUpdateSerializer,
+    UserAdminSerializer,
+    UserAdminDetailSerializer,
 )
+from account.models import CustomUser
 from therapy.models import Therapist
 
 
@@ -90,3 +93,84 @@ class AdminTherapistDetailView(APIView):
         user.is_active = False
         user.save(update_fields=["is_active"]) 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# User management views
+
+USER_LIST_PARAMETERS = [
+    OpenApiParameter(name="is_active", location=OpenApiParameter.QUERY, required=False, type=OpenApiTypes.BOOL, description="Filter by is_active status"),
+    OpenApiParameter(name="user_type", location=OpenApiParameter.QUERY, required=False, type=OpenApiTypes.STR, description="Filter by user type: admin, therapist, patient"),
+    OpenApiParameter(name="search", location=OpenApiParameter.QUERY, required=False, type=OpenApiTypes.STR, description="Search by email or full name"),
+    OpenApiParameter(name="page_size", location=OpenApiParameter.QUERY, required=False, type=OpenApiTypes.INT, description="Page size override"),
+]
+
+
+class AdminUserListView(APIView):
+    permission_classes = [IsAdminUser]
+
+    @extend_schema(tags=["admin", "users"], summary="List users (admin)", parameters=USER_LIST_PARAMETERS, responses={200: UserAdminSerializer(many=True)})
+    def get(self, request):
+        paginator = PageNumberPagination()
+        paginator.page_size = request.query_params.get("page_size", None) or paginator.page_size
+
+        queryset = CustomUser.objects.select_related("profile").all()
+
+        # Filter by is_active
+        is_active = request.query_params.get("is_active")
+        if is_active is not None:
+            is_active_bool = is_active.lower() in ("true", "1", "yes")
+            queryset = queryset.filter(is_active=is_active_bool)
+
+        # Filter by user_type
+        user_type = request.query_params.get("user_type")
+        if user_type == "admin":
+            queryset = queryset.filter(is_superuser=True)
+        elif user_type == "therapist":
+            queryset = queryset.filter(is_staff=True, is_superuser=False)
+        elif user_type == "patient":
+            queryset = queryset.filter(is_staff=False, is_superuser=False)
+
+        # Search by email or full name
+        search = request.query_params.get("search")
+        if search:
+            queryset = queryset.filter(
+                Q(email__icontains=search) |
+                Q(profile__first_name__icontains=search) |
+                Q(profile__last_name__icontains=search)
+            ).distinct()
+
+        page = paginator.paginate_queryset(queryset, request)
+        serializer = UserAdminSerializer(page, many=True, context={"request": request})
+        return paginator.get_paginated_response(serializer.data)
+
+
+class AdminUserDetailView(APIView):
+    permission_classes = [IsAdminUser]
+
+    @extend_schema(tags=["admin", "users"], summary="Get user detail (admin)", responses=UserAdminDetailSerializer)
+    def get(self, request, pk):
+        user = get_object_or_404(CustomUser.objects.select_related("profile"), pk=pk)
+        serializer = UserAdminDetailSerializer(user, context={"request": request})
+        return Response(serializer.data)
+
+
+class AdminUserActivateView(APIView):
+    permission_classes = [IsAdminUser]
+
+    @extend_schema(tags=["admin", "users"], summary="Activate user (admin)", responses={200: UserAdminSerializer})
+    def patch(self, request, pk):
+        user = get_object_or_404(CustomUser, pk=pk)
+        user.is_active = True
+        user.save(update_fields=["is_active"])
+        return Response(UserAdminSerializer(user, context={"request": request}).data)
+
+
+class AdminUserDeactivateView(APIView):
+    permission_classes = [IsAdminUser]
+
+    @extend_schema(tags=["admin", "users"], summary="Deactivate user (admin)", responses={200: UserAdminSerializer})
+    def patch(self, request, pk):
+        user = get_object_or_404(CustomUser, pk=pk)
+        user.is_active = False
+        user.save(update_fields=["is_active"])
+        return Response(UserAdminSerializer(user, context={"request": request}).data)
