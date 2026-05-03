@@ -58,6 +58,15 @@ class Therapist(models.Model):
     def __str__(self) -> str:
         return f"Dr. {self.user.profile.full_name}"
 
+    @property
+    def is_profile_complete(self) -> bool:
+        return all([
+            bool(self.bio.strip()),
+            self.specialties.exists(),
+            bool(self.license_number.strip()),
+            self.consultation_fee is not None,
+        ])
+
 
 class Appointment(models.Model):
     """An appointment booking between a patient and a therapist."""

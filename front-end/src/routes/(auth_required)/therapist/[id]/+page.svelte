@@ -268,6 +268,12 @@
           {therapist.bio || 'Bio will be added soon.'}
         </p>
 
+        {#if therapist.is_profile_complete === false}
+          <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+            This therapist profile is still being completed. Review the available details before booking.
+          </div>
+        {/if}
+
         <div class="grid gap-4 sm:grid-cols-2">
           <section class="rounded-lg border border-blue-100 bg-white p-4">
             <h2 class="text-xs font-semibold uppercase tracking-wide text-blue-500">Specialties</h2>

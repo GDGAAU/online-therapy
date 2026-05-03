@@ -14,6 +14,8 @@ from google.auth.transport.requests import Request
 from account.email import send_appointment_email
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -33,6 +35,7 @@ from .models import Therapist, Appointment, Specialty
 from .serializers import (
     TherapistListSerializer,
     TherapistDetailSerializer,
+    TherapistProfileUpdateSerializer,
     SpecialtySerializer,
     AppointmentSerializer,
     CreateAppointmentSerializer,
@@ -41,6 +44,24 @@ from .serializers import (
 )
 
 
+def get_current_therapist(user):
+    try:
+        return user.therapist_profile
+    except Therapist.DoesNotExist:
+        return None
+
+
+def appointment_access_filter(user):
+    query = Q(patient=user)
+    therapist = get_current_therapist(user)
+
+    if therapist:
+        query |= Q(therapist=therapist)
+
+    return query
+
+
+@method_decorator(cache_page(60), name="dispatch")
 class SpecialtyListView(APIView):
     permission_classes = [AllowAny]
 
@@ -84,9 +105,8 @@ class TherapistListView(APIView):
             queryset = queryset.filter(
                 Q(user__profile__first_name__icontains=search) |
                 Q(user__profile__last_name__icontains=search) |
-                Q(specialties__name__icontains=search) |
-                Q(bio__icontains=search)
-            ).distinct()
+                Q(user__email__icontains=search)
+            )
 
         count = queryset.count()
         page = positive_int_param("page", 1)
@@ -115,6 +135,40 @@ class TherapistDetailView(APIView):
         )
         serializer = TherapistDetailSerializer(therapist, context={"request": request})
         return Response(serializer.data)
+
+
+class CurrentTherapistProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(tags=["therapists"], summary="Current therapist profile")
+    def get(self, request):
+        therapist = get_object_or_404(
+            Therapist.objects.select_related("user__profile").prefetch_related("specialties"),
+            user=request.user,
+        )
+        serializer = TherapistDetailSerializer(therapist, context={"request": request})
+        return Response(serializer.data)
+
+    @extend_schema(
+        tags=["therapists"],
+        summary="Update current therapist profile",
+        request=TherapistProfileUpdateSerializer,
+        responses=TherapistDetailSerializer,
+    )
+    def patch(self, request):
+        therapist = get_object_or_404(
+            Therapist.objects.select_related("user__profile").prefetch_related("specialties"),
+            user=request.user,
+        )
+        serializer = TherapistProfileUpdateSerializer(
+            therapist,
+            data=request.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        therapist = serializer.save()
+
+        return Response(TherapistDetailSerializer(therapist, context={"request": request}).data)
 
 
 class TherapistAvailabilityView(APIView):
@@ -206,11 +260,17 @@ class AppointmentListCreateView(APIView):
         
     def get(self, request):
         status_filter = request.query_params.get("status")
+        role = request.query_params.get("role")
         queryset = (
-            Appointment.objects.select_related("therapist__user__profile")
+            Appointment.objects.select_related("patient__profile", "therapist__user__profile")
             .prefetch_related("therapist__specialties")
-            .filter(patient=request.user)
         )
+
+        therapist = get_current_therapist(request.user)
+        if role == "therapist" or (role is None and therapist):
+            queryset = queryset.filter(therapist=therapist) if therapist else queryset.none()
+        else:
+            queryset = queryset.filter(patient=request.user)
 
         if status_filter:
             queryset = queryset.filter(status=status_filter)
@@ -277,9 +337,10 @@ class AppointmentDetailView(APIView):
 
     def _get_appointment(self, request, pk):
         return get_object_or_404(
-            Appointment.objects.select_related("therapist__user__profile"),
+            Appointment.objects.select_related("patient__profile", "therapist__user__profile")
+            .prefetch_related("therapist__specialties")
+            .filter(appointment_access_filter(request.user)),
             pk=pk,
-            patient=request.user,
         )
 
     def get(self, request, pk):
@@ -295,7 +356,10 @@ class CancelAppointmentView(APIView):
     responses={"200": {"message": "Appointment cancelled successfully."}},
 )
     def post(self, request, pk):
-        appointment = get_object_or_404(Appointment, pk=pk, patient=request.user)
+        appointment = get_object_or_404(
+            Appointment.objects.filter(appointment_access_filter(request.user)),
+            pk=pk,
+        )
 
         if not appointment.can_cancel():
             return Response(
@@ -400,6 +464,32 @@ class ConfirmAppointmentView(APIView):
             pass
         
         return Response({"message": "Appointment confirmed successfully."})
+
+
+class CompleteAppointmentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        tags=["appointments"],
+        responses={"200": {"message": "Appointment completed successfully."}},
+    )
+    def post(self, request, pk):
+        appointment = get_object_or_404(
+            Appointment.objects.select_related("therapist__user"),
+            pk=pk,
+            therapist__user=request.user
+        )
+
+        if appointment.status != Appointment.Status.CONFIRMED:
+            return Response(
+                {"error": {"code": "INVALID_STATUS", "detail": "Only confirmed appointments can be completed"}},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        appointment.status = Appointment.Status.COMPLETED
+        appointment.save(update_fields=["status", "updated_at"])
+
+        return Response({"message": "Appointment completed successfully."})
 
 
 class GenerateMeetingLinkView(APIView):

@@ -12,7 +12,9 @@ import type {
   Therapist,
   TherapistAvailabilitySlot,
   TherapistListParams,
+  TherapistProfileUpdatePayload,
   CreateAppointmentPayload,
+  RescheduleAppointmentPayload,
 } from "$lib/types";
 
 function buildTherapistQuery(params?: string | TherapistListParams) {
@@ -50,6 +52,14 @@ export const therapyApi = {
   getTherapist: (id: string) =>
     apiClient.get<Therapist>(`/therapy/therapists/${id}/`),
 
+  /** Get the authenticated therapist's own profile. */
+  getCurrentTherapistProfile: () =>
+    apiClient.get<Therapist>("/therapy/therapists/me/"),
+
+  /** Update the authenticated therapist's own profile. */
+  updateCurrentTherapistProfile: (data: TherapistProfileUpdatePayload) =>
+    apiClient.patch<Therapist>("/therapy/therapists/me/", data),
+
   /** Get therapist availability between two YYYY-MM-DD dates. */
   getTherapistAvailability: (id: string, dateFrom: string, dateTo: string) =>
     apiClient.get<Record<string, TherapistAvailabilitySlot[]>>(
@@ -59,10 +69,16 @@ export const therapyApi = {
   // ─── Appointments ────────────────────────────────────────
 
   /** List the current user's appointments. Filter by status. */
-  listAppointments: (appointmentStatus?: string) =>
-    apiClient.get<PaginatedResponse<Appointment>>(
-      `/therapy/appointments/${appointmentStatus ? `?status=${appointmentStatus}` : ""}`,
-    ),
+  listAppointments: (appointmentStatus?: string, role?: "patient" | "therapist") => {
+    const query = new URLSearchParams();
+    if (appointmentStatus) query.set("status", appointmentStatus);
+    if (role) query.set("role", role);
+    const queryString = query.toString();
+
+    return apiClient.get<PaginatedResponse<Appointment>>(
+      `/therapy/appointments/${queryString ? `?${queryString}` : ""}`,
+    );
+  },
 
   /** Get a single appointment. */
   getAppointment: (id: string) =>
@@ -71,6 +87,27 @@ export const therapyApi = {
   /** Book a new appointment. */
   createAppointment: (data: CreateAppointmentPayload) =>
     apiClient.post<Appointment>("/therapy/appointments/", data),
+
+  /** Reschedule an existing appointment. */
+  rescheduleAppointment: (id: string, data: RescheduleAppointmentPayload) =>
+    apiClient.post<{ message: string; appointment: Appointment }>(
+      `/therapy/appointments/${id}/reschedule/`,
+      data,
+    ),
+
+  /** Confirm a pending appointment as the therapist. */
+  confirmAppointment: (id: string) =>
+    apiClient.post<{ message: string }>(`/therapy/appointments/${id}/confirm/`),
+
+  /** Mark a confirmed appointment complete as the therapist. */
+  completeAppointment: (id: string) =>
+    apiClient.post<{ message: string }>(`/therapy/appointments/${id}/complete/`),
+
+  /** Generate or return the meeting link for a confirmed appointment. */
+  generateMeetingLink: (id: string) =>
+    apiClient.post<{ meeting_link: string }>(
+      `/therapy/appointments/${id}/generate-meeting-link/`,
+    ),
 
   /** Cancel an appointment. */
   cancelAppointment: (id: string, reason?: string) =>

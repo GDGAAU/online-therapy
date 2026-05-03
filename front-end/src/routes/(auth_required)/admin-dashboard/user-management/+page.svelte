@@ -274,7 +274,7 @@
           placeholder="Search by name or email..."
           class="h-11 border-blue-200"
           value={searchQuery}
-          oninput={(e) => onSearchInput(e.currentTarget.value)}
+          oninput={(e: Event) => onSearchInput((e.currentTarget as HTMLInputElement).value)}
         />
       </div>
 
@@ -391,7 +391,7 @@
                     type="button"
                     variant="outline"
                     class={`${user.is_active ? 'border-amber-200 text-amber-700 hover:bg-amber-50' : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50'}`}
-                    onclick={(e) => {
+                    onclick={(e: Event) => {
                       e.stopPropagation();
                       toggleUserStatus(user);
                     }}
@@ -507,6 +507,7 @@
           <Button 
             class={`w-full ${selectedUser.is_active ? 'bg-amber-600 hover:bg-amber-700' : 'bg-emerald-600 hover:bg-emerald-700'} text-white`}
             onclick={() => {
+              if (!selectedUser) return;
               toggleUserStatus(selectedUser);
               closeUserDetails();
             }}

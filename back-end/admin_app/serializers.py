@@ -142,6 +142,7 @@ class AdminTherapistSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source="user.email", read_only=True)
     first_name = serializers.CharField(source="user.profile.first_name", read_only=True)
     last_name = serializers.CharField(source="user.profile.last_name", read_only=True)
+    is_active = serializers.BooleanField(source="user.is_active", read_only=True)
     specialties = serializers.SlugRelatedField(many=True, slug_field="name", read_only=True)
 
     class Meta:
@@ -156,6 +157,7 @@ class AdminTherapistSerializer(serializers.ModelSerializer):
             "years_of_experience",
             "consultation_fee",
             "license_number",
+            "is_active",
             "is_available",
             "created_at",
             "updated_at",
