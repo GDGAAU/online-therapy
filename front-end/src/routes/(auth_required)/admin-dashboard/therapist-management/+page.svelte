@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { toast } from 'svelte-sonner';
   import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
@@ -34,63 +35,12 @@
     hourlyRate: string;
   }
 
-  const seedTherapists: TherapistAdminItem[] = [
-    {
-      id: 'th-1001',
-      user: {
-        id: 'usr-1001',
-        full_name: 'Dr. Lena Whitmore',
-        email: 'lena.whitmore@therapy.local',
-        is_staff: true,
-        is_superuser: false
-      },
-      profile: {
-        bio: 'Trauma-informed therapist focused on anxiety, burnout, and emotional regulation.',
-        specialties: ['Anxiety', 'Trauma', 'Burnout'],
-        hourly_rate: 110,
-        status: 'active',
-        created_at: '2026-01-05T09:00:00.000Z'
-      }
-    },
-    {
-      id: 'th-1002',
-      user: {
-        id: 'usr-1002',
-        full_name: 'Dr. Jordan Hale',
-        email: 'jordan.hale@therapy.local',
-        is_staff: true,
-        is_superuser: false
-      },
-      profile: {
-        bio: 'CBT practitioner supporting adults with mood disorders and sleep routines.',
-        specialties: ['CBT', 'Depression', 'Sleep'],
-        hourly_rate: 95,
-        status: 'active',
-        created_at: '2026-02-12T09:00:00.000Z'
-      }
-    },
-    {
-      id: 'th-1003',
-      user: {
-        id: 'usr-1003',
-        full_name: 'Dr. Maya Okoro',
-        email: 'maya.okoro@therapy.local',
-        is_staff: true,
-        is_superuser: false
-      },
-      profile: {
-        bio: 'Family and relationship therapist. Specializes in communication frameworks.',
-        specialties: ['Family', 'Relationships'],
-        hourly_rate: 120,
-        status: 'inactive',
-        created_at: '2026-02-27T09:00:00.000Z'
-      }
-    }
-  ];
-
-  let therapists = $state<TherapistAdminItem[]>(seedTherapists);
+  let therapists = $state<TherapistAdminItem[]>([]);
   let searchQuery = $state('');
   let statusFilter = $state<'all' | TherapistStatus>('all');
+  
+  let isLoading = $state(true);
+  let error = $state<string | null>(null);
 
   let showCreateDrawer = $state(false);
   let isCreating = $state(false);
@@ -148,6 +98,35 @@
       .filter(Boolean);
   }
 
+  async function loadTherapists() {
+    isLoading = true;
+    error = null;
+    
+    try {
+      // Build URL with search and status filters
+      let url = '/api/v1/admin/therapists/';
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('search', searchQuery);
+      if (statusFilter !== 'all') params.append('status', statusFilter);
+      if (params.toString()) url += `?${params.toString()}`;
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to load therapists: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      // Handle both array response and paginated response
+      therapists = Array.isArray(data) ? data : data.results || [];
+    } catch (err) {
+      error = err.message;
+      toast.error('Failed to load therapists');
+    } finally {
+      isLoading = false;
+    }
+  }
+
   async function createTherapist() {
     const specialties = parseSpecialties(form.specialties);
     const hourlyRate = Number(form.hourlyRate);
@@ -159,11 +138,6 @@
 
     if (!Number.isFinite(hourlyRate) || hourlyRate <= 0) {
       toast.error('Hourly rate must be a positive number.');
-      return;
-    }
-
-    if (therapists.some((t) => t.user.email.toLowerCase() === form.email.trim().toLowerCase())) {
-      toast.error('A therapist with this email already exists.');
       return;
     }
 
@@ -184,33 +158,36 @@
       }
     };
 
-    await new Promise((resolve) => setTimeout(resolve, 450));
-
-    const nextId = `th-${Date.now()}`;
-    therapists = [
-      {
-        id: nextId,
-        user: {
-          id: `usr-${Date.now()}`,
-          full_name: payload.user.full_name,
-          email: payload.user.email,
-          is_staff: payload.user.is_staff,
-          is_superuser: payload.user.is_superuser
+    try {
+      const response = await fetch('/api/v1/admin/therapists/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        profile: {
-          bio: payload.therapist_profile.bio,
-          specialties: payload.therapist_profile.specialties,
-          hourly_rate: payload.therapist_profile.hourly_rate,
-          status: 'active',
-          created_at: new Date().toISOString()
-        }
-      },
-      ...therapists
-    ];
+        body: JSON.stringify(payload)
+      });
 
-    isCreating = false;
-    showCreateDrawer = false;
-    toast.success('Therapist user and profile created successfully.');
+      if (!response.ok) {
+        const errorData = await response.json();
+        // Show specific error if email already exists
+        if (errorData.email) {
+          toast.error(`Email error: ${errorData.email}`);
+        } else {
+          toast.error('Failed to create therapist');
+        }
+        return;
+      }
+
+      const newTherapist = await response.json();
+      therapists = [newTherapist, ...therapists];
+      showCreateDrawer = false;
+      resetForm();
+      toast.success('Therapist user and profile created successfully.');
+    } catch (err) {
+      toast.error('Network error. Please try again.');
+    } finally {
+      isCreating = false;
+    }
   }
 
   function requestDelete(item: TherapistAdminItem) {
@@ -227,14 +204,25 @@
     if (!deleteTarget) return;
 
     isDeleting = true;
-    await new Promise((resolve) => setTimeout(resolve, 300));
 
-    therapists = therapists.filter((t) => t.id !== deleteTarget?.id);
+    try {
+      const response = await fetch(`/api/v1/admin/therapists/${deleteTarget.id}/`, {
+        method: 'DELETE'
+      });
 
-    isDeleting = false;
-    showDeleteConfirm = false;
-    toast.success(`Removed ${deleteTarget.user.full_name} from therapist directory.`);
-    deleteTarget = null;
+      if (!response.ok) {
+        throw new Error('Failed to delete');
+      }
+
+      therapists = therapists.filter((t) => t.id !== deleteTarget?.id);
+      toast.success(`Removed ${deleteTarget.user.full_name} from therapist directory.`);
+      showDeleteConfirm = false;
+      deleteTarget = null;
+    } catch (err) {
+      toast.error('Failed to delete therapist. Please try again.');
+    } finally {
+      isDeleting = false;
+    }
   }
 
   function initials(name: string) {
@@ -251,6 +239,10 @@
       ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
       : 'bg-slate-100 text-slate-700 border-slate-200';
   }
+
+  $effect(() => {
+    loadTherapists();
+  });
 </script>
 
 <svelte:head>
@@ -274,126 +266,138 @@
     </div>
   </header>
 
-  <div class="grid gap-4 sm:grid-cols-3">
-    <article class="rounded-xl border border-blue-100 bg-white p-4 shadow-sm">
-      <p class="text-xs uppercase tracking-wide text-blue-500">Total therapists</p>
-      <p class="mt-2 text-2xl font-semibold text-blue-900">{therapists.length}</p>
-    </article>
-    <article class="rounded-xl border border-blue-100 bg-white p-4 shadow-sm">
-      <p class="text-xs uppercase tracking-wide text-blue-500">Active</p>
-      <p class="mt-2 text-2xl font-semibold text-emerald-700">{activeCount}</p>
-    </article>
-    <article class="rounded-xl border border-blue-100 bg-white p-4 shadow-sm">
-      <p class="text-xs uppercase tracking-wide text-blue-500">Inactive</p>
-      <p class="mt-2 text-2xl font-semibold text-slate-700">{inactiveCount}</p>
-    </article>
-  </div>
-
-  <section class="space-y-4 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
-    <div class="flex flex-wrap items-center gap-3">
-      <div class="min-w-[240px] flex-1">
-        <Input
-          type="search"
-          bind:value={searchQuery}
-          className="h-11 border-blue-200"
-          placeholder="Search by therapist name, email, or specialty"
-        />
-      </div>
-
-      <div class="inline-flex rounded-lg border border-blue-200 bg-white p-1 text-sm">
-        <button
-          type="button"
-          class={`rounded-md px-3 py-1.5 transition ${statusFilter === 'all' ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-blue-50'}`}
-          onclick={() => (statusFilter = 'all')}
-        >
-          All
-        </button>
-        <button
-          type="button"
-          class={`rounded-md px-3 py-1.5 transition ${statusFilter === 'active' ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-blue-50'}`}
-          onclick={() => (statusFilter = 'active')}
-        >
-          Active
-        </button>
-        <button
-          type="button"
-          class={`rounded-md px-3 py-1.5 transition ${statusFilter === 'inactive' ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-blue-50'}`}
-          onclick={() => (statusFilter = 'inactive')}
-        >
-          Inactive
-        </button>
-      </div>
+  {#if isLoading}
+    <div class="rounded-xl border border-blue-100 bg-white p-8 text-center">
+      <p class="text-slate-600">Loading therapists...</p>
+    </div>
+  {:else if error}
+    <div class="rounded-xl border border-red-200 bg-red-50 p-8 text-center">
+      <p class="text-red-600">Error: {error}</p>
+      <Button onclick={() => loadTherapists()} class="mt-4">Retry</Button>
+    </div>
+  {:else}
+    <div class="grid gap-4 sm:grid-cols-3">
+      <article class="rounded-xl border border-blue-100 bg-white p-4 shadow-sm">
+        <p class="text-xs uppercase tracking-wide text-blue-500">Total therapists</p>
+        <p class="mt-2 text-2xl font-semibold text-blue-900">{therapists.length}</p>
+      </article>
+      <article class="rounded-xl border border-blue-100 bg-white p-4 shadow-sm">
+        <p class="text-xs uppercase tracking-wide text-blue-500">Active</p>
+        <p class="mt-2 text-2xl font-semibold text-emerald-700">{activeCount}</p>
+      </article>
+      <article class="rounded-xl border border-blue-100 bg-white p-4 shadow-sm">
+        <p class="text-xs uppercase tracking-wide text-blue-500">Inactive</p>
+        <p class="mt-2 text-2xl font-semibold text-slate-700">{inactiveCount}</p>
+      </article>
     </div>
 
-    <div class="overflow-x-auto rounded-xl border border-slate-200">
-      <table class="min-w-full divide-y divide-slate-200 text-sm">
-        <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
-          <tr>
-            <th class="px-4 py-3">Therapist</th>
-            <th class="px-4 py-3">Email</th>
-            <th class="px-4 py-3">Specialties</th>
-            <th class="px-4 py-3">Status</th>
-            <th class="px-4 py-3 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100 bg-white">
-          {#snippet therapistRow(item: TherapistAdminItem)}
-            <tr class="hover:bg-blue-50/40">
-              <td class="px-4 py-3">
-                <div class="flex items-center gap-3">
-                  <div class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700">
-                    {initials(item.user.full_name)}
-                  </div>
-                  <div>
-                    <p class="font-medium text-slate-900">{item.user.full_name}</p>
-                    <p class="text-xs text-slate-500">${item.profile.hourly_rate}/hr</p>
-                  </div>
-                </div>
-              </td>
-              <td class="px-4 py-3 text-slate-700">{item.user.email}</td>
-              <td class="px-4 py-3">
-                <div class="flex flex-wrap gap-1.5">
-                  {#each item.profile.specialties as spec (spec)}
-                    <span class="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs text-blue-700">
-                      {spec}
-                    </span>
-                  {/each}
-                </div>
-              </td>
-              <td class="px-4 py-3">
-                <span class={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${statusPillClass(item.profile.status)}`}>
-                  {item.profile.status}
-                </span>
-              </td>
-              <td class="px-4 py-3 text-right">
-                <Button
-                  type="button"
-                  variant="outline"
-                  class="border-rose-200 text-rose-700 hover:bg-rose-50"
-                  onclick={() => requestDelete(item)}
-                >
-                  🗑 Delete
-                </Button>
-              </td>
-            </tr>
-          {/snippet}
+    <section class="space-y-4 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="min-w-[240px] flex-1">
+          <Input
+            type="search"
+            bind:value={searchQuery}
+            className="h-11 border-blue-200"
+            placeholder="Search by therapist name, email, or specialty"
+          />
+        </div>
 
-          {#if filteredTherapists.length === 0}
+        <div class="inline-flex rounded-lg border border-blue-200 bg-white p-1 text-sm">
+          <button
+            type="button"
+            class={`rounded-md px-3 py-1.5 transition ${statusFilter === 'all' ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-blue-50'}`}
+            onclick={() => (statusFilter = 'all')}
+          >
+            All
+          </button>
+          <button
+            type="button"
+            class={`rounded-md px-3 py-1.5 transition ${statusFilter === 'active' ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-blue-50'}`}
+            onclick={() => (statusFilter = 'active')}
+          >
+            Active
+          </button>
+          <button
+            type="button"
+            class={`rounded-md px-3 py-1.5 transition ${statusFilter === 'inactive' ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-blue-50'}`}
+            onclick={() => (statusFilter = 'inactive')}
+          >
+            Inactive
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto rounded-xl border border-slate-200">
+        <table class="min-w-full divide-y divide-slate-200 text-sm">
+          <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
             <tr>
-              <td colspan="5" class="px-4 py-10 text-center text-slate-500">
-                No therapists match your current filters.
-              </td>
+              <th class="px-4 py-3">Therapist</th>
+              <th class="px-4 py-3">Email</th>
+              <th class="px-4 py-3">Specialties</th>
+              <th class="px-4 py-3">Status</th>
+              <th class="px-4 py-3 text-right">Actions</th>
             </tr>
-          {:else}
-            {#each filteredTherapists as item (item.id)}
-              {@render therapistRow(item)}
-            {/each}
-          {/if}
-        </tbody>
-      </table>
-    </div>
-  </section>
+          </thead>
+          <tbody class="divide-y divide-slate-100 bg-white">
+            {#snippet therapistRow(item: TherapistAdminItem)}
+              <tr class="hover:bg-blue-50/40">
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-3">
+                    <div class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700">
+                      {initials(item.user.full_name)}
+                    </div>
+                    <div>
+                      <p class="font-medium text-slate-900">{item.user.full_name}</p>
+                      <p class="text-xs text-slate-500">${item.profile.hourly_rate}/hr</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-4 py-3 text-slate-700">{item.user.email}</td>
+                <td class="px-4 py-3">
+                  <div class="flex flex-wrap gap-1.5">
+                    {#each item.profile.specialties as spec (spec)}
+                      <span class="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs text-blue-700">
+                        {spec}
+                      </span>
+                    {/each}
+                  </div>
+                </td>
+                <td class="px-4 py-3">
+                  <span class={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${statusPillClass(item.profile.status)}`}>
+                    {item.profile.status}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-right">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    class="border-rose-200 text-rose-700 hover:bg-rose-50"
+                    onclick={() => requestDelete(item)}
+                  >
+                    🗑 Delete
+                  </Button>
+                </td>
+              </tr>
+            {/snippet}
 
+            {#if filteredTherapists.length === 0}
+              <tr>
+                <td colspan="5" class="px-4 py-10 text-center text-slate-500">
+                  No therapists match your current filters.
+                </td>
+              </tr>
+            {:else}
+              {#each filteredTherapists as item (item.id)}
+                {@render therapistRow(item)}
+              {/each}
+            {/if}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  {/if}
+
+  <!-- Create Drawer -->
   {#if showCreateDrawer}
     <div class="fixed inset-0 z-50 flex">
       <button
@@ -467,13 +471,13 @@
     </div>
   {/if}
 
+  <!-- Delete Confirmation Modal -->
   {#if showDeleteConfirm && deleteTarget}
     <div class="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center">
       <article class="w-full max-w-md space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
         <h3 class="text-lg font-semibold text-slate-900">Delete therapist?</h3>
         <p class="text-sm text-slate-600">
           This will remove <span class="font-medium">{deleteTarget.user.full_name}</span> from the therapist list.
-          (Mock flow simulates deleting both linked user and therapist profile.)
         </p>
 
         <div class="flex justify-end gap-2">
