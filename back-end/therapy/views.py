@@ -13,8 +13,9 @@ POST  /api/v1/therapy/appointments/<id>/reschedule/ → Reschedule
 from google.auth.transport.requests import Request
 from account.email import send_appointment_email
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
@@ -41,7 +42,7 @@ from .serializers import (
 
 
 class SpecialtyListView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     @extend_schema(tags=["therapists"], summary="List therapy specialties")
     def get(self, request):
@@ -51,10 +52,23 @@ class SpecialtyListView(APIView):
 
 
 class TherapistListView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     @extend_schema(tags=["therapists"], summary="List therapists")
     def get(self, request):
+        def positive_int_param(name, default, maximum=None):
+            raw_value = request.query_params.get(name)
+            if raw_value is None:
+                return default
+
+            try:
+                value = int(raw_value)
+            except (TypeError, ValueError):
+                value = default
+
+            value = max(value, 1)
+            return min(value, maximum) if maximum else value
+
         queryset = (
             Therapist.objects.select_related("user__profile")
             .prefetch_related("specialties")
@@ -65,34 +79,50 @@ class TherapistListView(APIView):
         if specialty:
             queryset = queryset.filter(specialties__slug=specialty)
 
+        search = request.query_params.get("search")
+        if search:
+            queryset = queryset.filter(
+                Q(user__profile__first_name__icontains=search) |
+                Q(user__profile__last_name__icontains=search) |
+                Q(specialties__name__icontains=search) |
+                Q(bio__icontains=search)
+            ).distinct()
+
+        count = queryset.count()
+        page = positive_int_param("page", 1)
+        page_size = positive_int_param("page_size", count or 1, maximum=50)
+        start = (page - 1) * page_size
+        end = start + page_size
+        queryset = queryset[start:end]
+
         serializer = TherapistListSerializer(
             queryset,
             many=True,
             context={"request": request}
         )
-        return Response({"results": serializer.data, "count": queryset.count()})
+        return Response({"results": serializer.data, "count": count})
 
 
 class TherapistDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     @extend_schema(tags=["therapists"], summary="Therapist detail")
     def get(self, request, pk):
         therapist = get_object_or_404(
             Therapist.objects.select_related("user__profile").prefetch_related("specialties"),
             pk=pk,
+            user__is_active=True,
         )
         serializer = TherapistDetailSerializer(therapist, context={"request": request})
         return Response(serializer.data)
 
 
 class TherapistAvailabilityView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     @extend_schema(tags=["therapists"], summary="Therapist availability")
     def get(self, request, pk):
         from datetime import datetime, timedelta, time
-        import datetime as dt
 
         start_date = request.query_params.get("from")
         end_date = request.query_params.get("to")
@@ -103,8 +133,8 @@ class TherapistAvailabilityView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        start_date = dt.datetime.strptime(start_date, "%Y-%m-%d").date()
-        end_date = dt.datetime.strptime(end_date, "%Y-%m-%d").date()
+        start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
 
         if (end_date - start_date).days > 60:
             return Response(
@@ -112,7 +142,7 @@ class TherapistAvailabilityView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        therapist = get_object_or_404(Therapist, pk=pk)
+        therapist = get_object_or_404(Therapist, pk=pk, user__is_active=True)
 
         appointments = Appointment.objects.filter(
             therapist=therapist,
@@ -127,8 +157,15 @@ class TherapistAvailabilityView(APIView):
         while current_date <= end_date:
             day_slots = []
 
-            start_time = datetime.combine(current_date, time(8, 0))
-            end_time = datetime.combine(current_date, time(18, 0))
+            current_timezone = timezone.get_current_timezone()
+            start_time = timezone.make_aware(
+                datetime.combine(current_date, time(8, 0)),
+                current_timezone,
+            )
+            end_time = timezone.make_aware(
+                datetime.combine(current_date, time(18, 0)),
+                current_timezone,
+            )
 
             slot_time = start_time
 
@@ -145,12 +182,11 @@ class TherapistAvailabilityView(APIView):
                         is_available = False
                         break
 
-                if is_available:
-                    day_slots.append({
-                        "start_at": slot_time.isoformat(),
-                        "end_at": slot_end.isoformat(),
-                        "is_available": True
-                    })
+                day_slots.append({
+                    "start_at": slot_time.isoformat(),
+                    "end_at": slot_end.isoformat(),
+                    "is_available": is_available
+                })
 
                 slot_time = slot_end
 
