@@ -152,6 +152,11 @@ DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# ─── Throttle rate configuration ─────────────────────────────
+AUTH_RATE_THROTTLE_RATE = os.environ.get("AUTH_RATE_THROTTLE_RATE", "5/minute")
+REGISTER_RATE_THROTTLE_RATE = os.environ.get("REGISTER_RATE_THROTTLE_RATE", "3/hour")
+PASSWORD_RESET_RATE_THROTTLE_RATE = os.environ.get("PASSWORD_RESET_RATE_THROTTLE_RATE", "3/hour")
+
 # ─── DRF ────────────────────────────────────────────────────
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -176,7 +181,9 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "100/hour",
         "user": "1000/hour",
-        "auth": "10/minute",  # for auth endpoints
+        "auth": AUTH_RATE_THROTTLE_RATE,
+        "register": REGISTER_RATE_THROTTLE_RATE,
+        "password_reset": PASSWORD_RESET_RATE_THROTTLE_RATE,
     },
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
@@ -213,6 +220,9 @@ DJOSER = {
         "user_create": "account.serializers.UserCreateSerializer",
         "user": "account.serializers.UserSerializer",
         "current_user": "account.serializers.UserSerializer",
+    },
+    "VIEWS": {
+        "user_create": "account.views.CustomUserViewSet"
     },
 }
 
