@@ -16,9 +16,12 @@ from django.conf import settings
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from drf_spectacular.utils import extend_schema
+from djoser.views import TokenCreateView
+from djoser.views import UserViewSet
 
 from .models import CustomUser, Profile, SocialAuth
 from .serializers import ProfileSerializer, UpdateProfileSerializer
+from core.throttles import AuthRateThrottle, RegisterRateThrottle, PasswordResetRateThrottle
 
 
 class MeView(APIView):
@@ -135,3 +138,18 @@ class GoogleLoginView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class CustomTokenCreateView(TokenCreateView):
+    """JWT token creation with rate limiting."""
+    throttle_classes = [AuthRateThrottle]
+
+class CustomUserViewSet(UserViewSet):
+    def get_throttles(self):
+        if self.action == "create":  # registration
+            return [RegisterRateThrottle()]
+        
+        if self.action == "reset_password":  # password reset request
+            return [PasswordResetRateThrottle()]
+        
+        return super().get_throttles()

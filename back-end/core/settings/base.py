@@ -175,7 +175,9 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "100/hour",
         "user": "1000/hour",
-        "auth": "10/minute",  # for auth endpoints
+        "auth": "5/minute",
+        "register": "3/hour",
+        "password_reset": "3/hour",
     },
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
@@ -212,6 +214,10 @@ DJOSER = {
         "user_create": "account.serializers.UserCreateSerializer",
         "user": "account.serializers.UserSerializer",
         "current_user": "account.serializers.UserSerializer",
+    },
+    "VIEWS": {
+        "jwt_create": "account.views.CustomTokenCreateView",
+        "user_create": "account.views.CustomUserViewSet"
     },
 }
 
