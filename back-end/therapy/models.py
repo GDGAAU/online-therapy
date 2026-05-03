@@ -102,6 +102,7 @@ class Appointment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     meeting_link = models.URLField(blank=True, null=True)
+    reminder_sent_at = models.DateTimeField(null=True, blank=True)
 
 
     class Meta:

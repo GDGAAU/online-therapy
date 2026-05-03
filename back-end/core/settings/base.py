@@ -30,6 +30,7 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "insecure-default-for-dev-only"
 DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 NOTIFICATIONS_ENABLED = True
+REMINDER_HOURS_BEFORE = 24
 
 # ─── Application Definition ─────────────────────────────────
 DJANGO_APPS = [

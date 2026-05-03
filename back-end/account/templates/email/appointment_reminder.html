@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Appointment Reminder</title>
+</head>
+<body>
+    <h2>Appointment Reminder</h2>
+
+    <p>Hello {{ appointment.patient.first_name|default:appointment.patient.email }},</p>
+
+    <p>This is a reminder for your upcoming therapy session.</p>
+
+    <hr>
+
+    <p><strong>Therapist:</strong> Dr. {{ appointment.therapist.user.profile.full_name }}</p>
+    <p><strong>Date & Time:</strong> {{ appointment.scheduled_at }}</p>
+    <p><strong>Session Type:</strong> {{ appointment.appointment_type }}</p>
+
+    {% if appointment.meeting_link %}
+        <p><strong>Meeting Link:</strong> 
+            <a href="{{ appointment.meeting_link }}">Join Session</a>
+        </p>
+    {% endif %}
+
+    <hr>
+
+    <p>Please make sure to join on time.</p>
+
+    <p>Thank you,<br>Online Therapy Team</p>
+</body>
+</html>
