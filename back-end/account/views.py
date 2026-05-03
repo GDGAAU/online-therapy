@@ -6,6 +6,7 @@ Profile endpoints used alongside djoser auth.
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
@@ -14,6 +15,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from django.conf import settings
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
+from drf_spectacular.utils import extend_schema
 
 from .models import CustomUser, Profile, SocialAuth
 from .serializers import ProfileSerializer, UpdateProfileSerializer
@@ -23,14 +25,22 @@ class MeView(APIView):
     """Retrieve and update the current user's profile."""
 
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
 
+    @extend_schema(tags=["users"], summary="Retrieve current user profile", responses=ProfileSerializer)
     def get(self, request):
-        profile = request.user.profile
+        profile, _ = Profile.objects.get_or_create(user=request.user)
         serializer = ProfileSerializer(profile, context={"request": request})
         return Response(serializer.data)
 
+    @extend_schema(
+        tags=["users"],
+        summary="Update current user profile",
+        request=UpdateProfileSerializer,
+        responses=ProfileSerializer,
+    )
     def patch(self, request):
-        profile = request.user.profile
+        profile, _ = Profile.objects.get_or_create(user=request.user)
         serializer = UpdateProfileSerializer(profile, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()

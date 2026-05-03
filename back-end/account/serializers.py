@@ -77,9 +77,14 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class UpdateProfileSerializer(serializers.ModelSerializer):
+    avatar = serializers.ImageField(required=False, allow_null=True)
+
     class Meta:
         model = Profile
         fields = ["first_name", "last_name", "bio", "phone_number", "date_of_birth", "avatar"]
+        extra_kwargs = {
+            "avatar": {"required": False, "allow_null": True},
+        }
 
 
 class UserSerializer(DjoserUserSerializer):
