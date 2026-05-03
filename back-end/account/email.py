@@ -122,7 +122,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 def send_appointment_email(event_type, appointment):
     #  feature flag
     if not getattr(settings, "NOTIFICATIONS_ENABLED", True):
@@ -156,6 +155,10 @@ def send_appointment_email(event_type, appointment):
     elif event_type == "confirmed":
         subject = "Appointment Confirmed"
         template = "email/appointment_confirmed.html"
+
+    elif event_type == "reminder":
+        subject = "Appointment Reminder"
+        template = "email/appointment_reminder.html"
 
     else:
         return  # safety
