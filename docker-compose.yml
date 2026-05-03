@@ -3,7 +3,7 @@ version: "3.9"
 services:
   # ─── PostgreSQL Database ────────────────────────────────────
   db:
-    image: ankane/pgvector:latest
+    image: pgvector/pgvector:pg16
     restart: unless-stopped
     environment:
       POSTGRES_DB: online_therapy

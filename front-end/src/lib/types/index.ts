@@ -68,6 +68,20 @@ export interface Therapist {
   consultation_fee: string | null;
   avatar_url: string | null;
   bio?: string;
+  license_number?: string;
+}
+
+export interface TherapistAvailabilitySlot {
+  start_at: string;
+  end_at: string;
+  is_available: boolean;
+}
+
+export interface TherapistListParams {
+  search?: string;
+  specialty?: string;
+  page?: number;
+  page_size?: number;
 }
 
 export type AppointmentStatus =

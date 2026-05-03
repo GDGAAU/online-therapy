@@ -32,6 +32,13 @@
 
   let visibleMonth = $state(new Date());
 
+  function formatDateKey(date: Date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   const monthFormatter = new Intl.DateTimeFormat('en-US', {
     month: 'long',
     year: 'numeric'
@@ -67,7 +74,7 @@
       const totalCells = Math.ceil((leadingDays + daysInMonth) / 7) * 7;
 
       const rows: DayCell[] = [];
-      const todayIso = new Date().toISOString().slice(0, 10);
+      const todayIso = formatDateKey(new Date());
 
       for (let idx = 0; idx < totalCells; idx += 1) {
         const date = new Date(
@@ -75,7 +82,7 @@
           visibleMonth.getMonth(),
           idx - leadingDays + 1
         );
-        const isoDate = date.toISOString().slice(0, 10);
+        const isoDate = formatDateKey(date);
         const slots = availability[isoDate] ?? [];
 
         rows.push({
