@@ -39,19 +39,70 @@ class TherapistDetailSerializer(TherapistListSerializer):
     """Full serializer for detail views — includes bio."""
 
     class Meta(TherapistListSerializer.Meta):
-        fields = TherapistListSerializer.Meta.fields + ["bio", "license_number"]
+        fields = TherapistListSerializer.Meta.fields + [
+            "bio",
+            "license_number",
+            "is_profile_complete",
+        ]
+
+
+class TherapistProfileUpdateSerializer(serializers.ModelSerializer):
+    specialties = serializers.ListField(
+        child=serializers.SlugField(),
+        required=False,
+        allow_empty=True,
+    )
+
+    class Meta:
+        model = Therapist
+        fields = [
+            "bio",
+            "license_number",
+            "consultation_fee",
+            "years_of_experience",
+            "is_available",
+            "specialties",
+        ]
+
+    def validate_specialties(self, value):
+        specialties = list(Specialty.objects.filter(slug__in=value))
+        found_slugs = {specialty.slug for specialty in specialties}
+        missing_slugs = sorted(set(value) - found_slugs)
+
+        if missing_slugs:
+            raise serializers.ValidationError(
+                f"Unknown specialty slug(s): {', '.join(missing_slugs)}"
+            )
+
+        return specialties
+
+    def update(self, instance, validated_data):
+        specialties = validated_data.pop("specialties", None)
+
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+
+        instance.save()
+
+        if specialties is not None:
+            instance.specialties.set(specialties)
+
+        return instance
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
     therapist_name = serializers.SerializerMethodField()
     therapist_specialty = serializers.SerializerMethodField()
+    patient_name = serializers.SerializerMethodField()
+    patient_email = serializers.EmailField(source="patient.email", read_only=True)
 
     class Meta:
         model = Appointment
         fields = [
             "id", "therapist", "therapist_name", "therapist_specialty",
+            "patient_name", "patient_email",
             "status", "appointment_type", "scheduled_at", "duration_minutes",
-            "reason", "created_at","meeting_link",
+            "reason", "created_at", "meeting_link",
         ]
         read_only_fields = ["id", "status", "created_at"]
 
@@ -60,6 +111,12 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
     def get_therapist_specialty(self, obj) -> list[str]:
         return [s.name for s in obj.therapist.specialties.all()]
+
+    def get_patient_name(self, obj) -> str:
+        profile = getattr(obj.patient, "profile", None)
+        if profile and profile.full_name:
+            return profile.full_name
+        return obj.patient.email
 
 
 class CreateAppointmentSerializer(serializers.Serializer):
@@ -103,4 +160,3 @@ class GenerateMeetingLinkSerializer(serializers.Serializer):
     """Serializer for generating a meeting link for an appointment."""
     appointment_id = serializers.UUIDField(read_only=True)
     meeting_link = serializers.URLField(read_only=True)
-

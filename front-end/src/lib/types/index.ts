@@ -69,6 +69,7 @@ export interface Therapist {
   avatar_url: string | null;
   bio?: string;
   license_number?: string;
+  is_profile_complete?: boolean;
 }
 
 export interface TherapistAvailabilitySlot {
@@ -82,6 +83,15 @@ export interface TherapistListParams {
   specialty?: string;
   page?: number;
   page_size?: number;
+}
+
+export interface TherapistProfileUpdatePayload {
+  bio?: string;
+  license_number?: string;
+  consultation_fee?: string | number | null;
+  years_of_experience?: number;
+  is_available?: boolean;
+  specialties?: string[];
 }
 
 export type AppointmentStatus =
@@ -98,12 +108,15 @@ export interface Appointment {
   therapist: string;
   therapist_name: string;
   therapist_specialty: string[];
+  patient_name?: string;
+  patient_email?: string;
   status: AppointmentStatus;
   appointment_type: AppointmentType;
   scheduled_at: string;
   duration_minutes: number;
   reason: string;
   created_at: string;
+  meeting_link?: string | null;
 }
 
 export interface CreateAppointmentPayload {
@@ -111,6 +124,11 @@ export interface CreateAppointmentPayload {
   scheduled_at: string;
   appointment_type: AppointmentType;
   reason?: string;
+}
+
+export interface RescheduleAppointmentPayload {
+  scheduled_at: string;
+  appointment_type?: AppointmentType;
 }
 
 // ─── Shared ──────────────────────────────────────────────────

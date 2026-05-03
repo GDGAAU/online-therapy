@@ -37,7 +37,7 @@ class AdminTherapistListCreateView(APIView):
         paginator = PageNumberPagination()
         paginator.page_size = request.query_params.get("page_size", None) or paginator.page_size
 
-        queryset = Therapist.objects.select_related("user__profile").prefetch_related("specialties").filter(user__is_active=True)
+        queryset = Therapist.objects.select_related("user__profile").prefetch_related("specialties").all()
 
         # Status filters
         status_q = request.query_params.get("status")

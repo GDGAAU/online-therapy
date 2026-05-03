@@ -389,7 +389,7 @@
           placeholder="Search by patient or therapist..."
           class="h-11 border-blue-200"
           value={searchQuery}
-          oninput={(e) => onSearchInput(e.currentTarget.value)}
+          oninput={(e: Event) => onSearchInput((e.currentTarget as HTMLInputElement).value)}
         />
       </div>
       
@@ -502,7 +502,7 @@
                         type="button"
                         size="sm"
                         class="bg-emerald-600 text-white hover:bg-emerald-700"
-                        onclick={(e) => {
+                        onclick={(e: Event) => {
                           e.stopPropagation();
                           updateAppointmentStatus(apt, 'confirmed');
                         }}
@@ -518,7 +518,7 @@
                         size="sm"
                         variant="outline"
                         class="border-red-200 text-red-700 hover:bg-red-50"
-                        onclick={(e) => {
+                        onclick={(e: Event) => {
                           e.stopPropagation();
                           updateAppointmentStatus(apt, 'cancelled');
                         }}
@@ -534,7 +534,7 @@
                         size="sm"
                         variant="outline"
                         class="border-gray-200 text-gray-700 hover:bg-gray-50"
-                        onclick={(e) => {
+                        onclick={(e: Event) => {
                           e.stopPropagation();
                           updateAppointmentStatus(apt, 'no_show');
                         }}
