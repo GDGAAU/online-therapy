@@ -21,8 +21,7 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
     SpectacularRedocView,
 )
-from djoser.views import UserViewSet
-from account.views import LogoutView, GoogleLoginView
+from account.views import CustomTokenObtainPairView, CustomUserViewSet, LogoutView, GoogleLoginView
 urlpatterns = [
   # Admin
   path("admin/", admin.site.urls),
@@ -30,11 +29,12 @@ urlpatterns = [
   # Auth (Djoser + JWT)
   path(
       "api/v1/auth/register/",
-      UserViewSet.as_view({"post": "create"}),
+      CustomUserViewSet.as_view({"post": "create"}),
       name="auth-register",
   ),
   path("api/v1/auth/logout/", LogoutView.as_view(), name="auth-logout"),
   path("api/v1/auth/google/", GoogleLoginView.as_view(), name="google-login"),
+  path("api/v1/auth/jwt/create/", CustomTokenObtainPairView.as_view(), name="jwt-create"),
   path("api/v1/auth/", include("djoser.urls")),
   path("api/v1/auth/", include("djoser.urls.jwt")),
   path("api/v1/auth/", include("account.urls")),

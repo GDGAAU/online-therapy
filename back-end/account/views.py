@@ -12,11 +12,11 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.views import TokenObtainPairView
 from django.conf import settings
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from drf_spectacular.utils import extend_schema
-from djoser.views import TokenCreateView
 from djoser.views import UserViewSet
 
 from .models import CustomUser, Profile, SocialAuth
@@ -140,7 +140,7 @@ class GoogleLoginView(APIView):
         )
 
 
-class CustomTokenCreateView(TokenCreateView):
+class CustomTokenObtainPairView(TokenObtainPairView):
     """JWT token creation with rate limiting."""
     throttle_classes = [AuthRateThrottle]
 

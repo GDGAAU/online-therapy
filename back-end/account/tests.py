@@ -21,6 +21,36 @@ class AccountTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('token', response.data)
 
+    def test_login_rate_limit(self):
+        url = '/api/v1/auth/jwt/create/'
+        payload = {'email': self.user_email, 'password': self.user_password}
+        for _ in range(5):
+            response = self.client.post(url, payload)
+            self.assertEqual(response.status_code, 200)
+        response = self.client.post(url, payload)
+        self.assertEqual(response.status_code, 429)
+        self.assertIn('Retry-After', response.headers)
+
+    def test_register_rate_limit(self):
+        url = '/api/v1/auth/users/'
+        payload = {'email': 'another@example.com', 'password': 'AnotherPassword123'}
+        for _ in range(3):
+            response = self.client.post(url, payload)
+            self.assertIn(response.status_code, [201, 400])
+        response = self.client.post(url, payload)
+        self.assertEqual(response.status_code, 429)
+        self.assertIn('Retry-After', response.headers)
+
+    def test_password_reset_rate_limit(self):
+        url = '/api/v1/auth/users/reset_password/'
+        payload = {'email': self.user_email}
+        for _ in range(3):
+            response = self.client.post(url, payload)
+            self.assertIn(response.status_code, [200, 400])
+        response = self.client.post(url, payload)
+        self.assertEqual(response.status_code, 429)
+        self.assertIn('Retry-After', response.headers)
+
     def test_forgot_password(self):
         url = reverse('forgot-password')  
         response = self.client.post(url, {'email': self.user_email})
