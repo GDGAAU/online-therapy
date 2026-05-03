@@ -4,6 +4,7 @@ from .views import (
     AppointmentRescheduleView,
     ConfirmAppointmentView,
     GenerateMeetingLinkView,
+    SpecialtyListView,
     TherapistListView,
     TherapistDetailView,
     AppointmentListCreateView,
@@ -14,6 +15,7 @@ from .views import (
 
 urlpatterns = [
     # therapist endpoints
+    path("specialties/", SpecialtyListView.as_view(), name="specialty-list"),
     path("therapists/", TherapistListView.as_view(), name="therapist-list"),
     path("therapists/<uuid:pk>/", TherapistDetailView.as_view(), name="therapist-detail"),
     path("appointments/", AppointmentListCreateView.as_view(), name="appointment-list-create"),

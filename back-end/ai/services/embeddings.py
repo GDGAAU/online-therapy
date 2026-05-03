@@ -1,20 +1,42 @@
-''' ai/services/embeddings.py
+"""ai/services/embeddings.py
 ===========================
-Text embedding service for AI app. This module defines the function to convert text into vector embeddings using a lightweight local model (SentenceTransformer). 
-The resulting vectors are stored in the database and used for similarity search in RAG pipelines.
-'''
+Lightweight text embedding service for the AI app.
 
-from sentence_transformers import SentenceTransformer
+We avoid heavyweight ML dependencies (torch/nvidia) by using a deterministic,
+hash-based embedding. It produces a fixed-size vector suitable for similarity
+search in pgvector while staying fast and dependency-free.
+"""
 
-# lightweight local embedding model
-_model = SentenceTransformer("all-MiniLM-L6-v2")
+from __future__ import annotations
+
+import hashlib
+import struct
 
 
-def get_embedding(text: str):
-    """
-    Convert text → vector (384-dim)
-    """
+EMBEDDING_DIM = 384
+
+
+def _hash_to_floats(seed: bytes, count: int) -> list[float]:
+    floats: list[float] = []
+    counter = 0
+
+    while len(floats) < count:
+        digest = hashlib.blake2b(seed + counter.to_bytes(4, "big"), digest_size=32).digest()
+        for offset in range(0, len(digest), 4):
+            if len(floats) >= count:
+                break
+            value = struct.unpack(">I", digest[offset:offset + 4])[0]
+            floats.append((value / 2**32) * 2 - 1)
+        counter += 1
+
+    return floats
+
+
+def get_embedding(text: str) -> list[float] | None:
+    """Convert text → vector (384-dim)."""
     if not text:
         return None
 
-    return _model.encode(text).tolist()
+    normalized = text.strip().lower().encode("utf-8")
+    seed = hashlib.sha256(normalized).digest()
+    return _hash_to_floats(seed, EMBEDDING_DIM)
