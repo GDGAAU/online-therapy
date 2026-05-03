@@ -21,7 +21,7 @@ class TherapistListSerializer(serializers.ModelSerializer):
         model = Therapist
         fields = [
             "id", "name", "specialties", "years_of_experience",
-            "consultation_fee", "avatar_url",  
+            "consultation_fee", "avatar_url", "is_available",
         ]
 
     def get_name(self, obj) -> str:
@@ -103,5 +103,4 @@ class GenerateMeetingLinkSerializer(serializers.Serializer):
     """Serializer for generating a meeting link for an appointment."""
     appointment_id = serializers.UUIDField(read_only=True)
     meeting_link = serializers.URLField(read_only=True)
-
 

@@ -11,15 +11,14 @@ RAG chain implementation for AI app. This module defines the main pipeline for g
 import os
 from groq import Groq
 
-from langchain_core.prompts import ChatPromptTemplate
 from ai.services.retrieval import retrieve_similar_documents
 
 # Groq client
 client = Groq(api_key=os.environ.get("GROK_API_KEY"))
 
 
-# Prompt template
-prompt = ChatPromptTemplate.from_template("""
+def _build_prompt(context: str, question: str) -> str:
+    return f"""
 You are a helpful AI assistant for an online therapy platform.
 
 Use ONLY the context below to answer the question.
@@ -32,7 +31,7 @@ Question:
 {question}
 
 Answer clearly and professionally:
-""")
+""".strip()
 
 
 def generate_answer(question: str):
@@ -47,10 +46,7 @@ def generate_answer(question: str):
     context = "\n\n".join(docs)
 
    
-    formatted_prompt = prompt.format(
-        context=context,
-        question=question
-    )
+    formatted_prompt = _build_prompt(context=context, question=question)
 
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",

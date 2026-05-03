@@ -28,15 +28,26 @@ from googleapiclient.errors import HttpError
 from datetime import timezone as dt_timezone  
 
 
-from .models import Therapist, Appointment
+from .models import Therapist, Appointment, Specialty
 from .serializers import (
     TherapistListSerializer,
     TherapistDetailSerializer,
+    SpecialtySerializer,
     AppointmentSerializer,
     CreateAppointmentSerializer,
     CancelAppointmentSerializer,
     RescheduleAppointmentSerializer,
 )
+
+
+class SpecialtyListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(tags=["therapists"], summary="List therapy specialties")
+    def get(self, request):
+        queryset = Specialty.objects.all()
+        serializer = SpecialtySerializer(queryset, many=True)
+        return Response({"results": serializer.data, "count": queryset.count()})
 
 
 class TherapistListView(APIView):
@@ -47,7 +58,7 @@ class TherapistListView(APIView):
         queryset = (
             Therapist.objects.select_related("user__profile")
             .prefetch_related("specialties")
-            .filter(is_available=True, user__is_active=True)
+            .filter(user__is_active=True)
         )
 
         specialty = request.query_params.get("specialty")
