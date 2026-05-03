@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 from account.models import CustomUser
 from unittest.mock import patch
 
@@ -50,6 +51,32 @@ class AccountTests(TestCase):
         response = self.client.post(url, payload)
         self.assertEqual(response.status_code, 429)
         self.assertIn('Retry-After', response.headers)
+
+    def test_deactivate_user_blacklists_outstanding_tokens(self):
+        create_url = reverse('jwt-create')
+        response = self.client.post(create_url, {'email': self.user_email, 'password': self.user_password})
+        self.assertEqual(response.status_code, 200)
+        access_token = response.data.get('access')
+        self.assertIsNotNone(access_token)
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+        response = self.client.get('/api/v1/auth/me/')
+        self.assertEqual(response.status_code, 200)
+
+        self.user.is_active = False
+        self.user.save(update_fields=['is_active'])
+
+        self.assertTrue(OutstandingToken.objects.filter(user=self.user).exists())
+        self.assertTrue(BlacklistedToken.objects.filter(token__user=self.user).exists())
+
+        response = self.client.get('/api/v1/auth/me/')
+        self.assertEqual(response.status_code, 401)
+
+        self.user.is_active = True
+        self.user.save(update_fields=['is_active'])
+
+        response = self.client.post(create_url, {'email': self.user_email, 'password': self.user_password})
+        self.assertEqual(response.status_code, 200)
 
     def test_forgot_password(self):
         url = reverse('forgot-password')  
