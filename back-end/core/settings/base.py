@@ -206,6 +206,7 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
+    "CHECK_USER_IS_ACTIVE": True,
 }
 
 # ─── Djoser ───────────────────────────────────────────────
