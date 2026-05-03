@@ -37,6 +37,7 @@ urlpatterns = [
   path("api/v1/auth/google/", GoogleLoginView.as_view(), name="google-login"),
   path("api/v1/auth/", include("djoser.urls")),
   path("api/v1/auth/", include("djoser.urls.jwt")),
+  path("api/v1/auth/", include("account.urls")),
   # API v1
   path("api/v1/therapy/", include("therapy.urls")),
   path("api/v1/articles/", include("blog.urls")),

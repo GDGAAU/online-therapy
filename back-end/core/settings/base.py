@@ -11,8 +11,16 @@ from pathlib import Path
 import os
 import dj_database_url
 from dotenv import load_dotenv
+import cloudinary
 
 load_dotenv()
+
+# Cloudinary configuration
+cloudinary.config(
+    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.environ.get('CLOUDINARY_API_KEY'),
+    api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
+)
 
 # ─── Paths ──────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
@@ -41,6 +49,8 @@ THIRD_PARTY_APPS = [
     "djoser",
     "corsheaders",
     "drf_spectacular",
+    "cloudinary_storage",
+    "cloudinary",
 ]
 
 LOCAL_APPS = [
@@ -124,6 +134,20 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Cloudinary settings
+_cloudinary_url = os.environ.get('CLOUDINARY_URL')
+if not _cloudinary_url:
+    cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME')
+    api_key = os.environ.get('CLOUDINARY_API_KEY')
+    api_secret = os.environ.get('CLOUDINARY_API_SECRET')
+    if cloud_name and api_key and api_secret:
+        _cloudinary_url = f"cloudinary://{api_key}:{api_secret}@{cloud_name}"
+
+CLOUDINARY_STORAGE = {
+    'CLOUDINARY_URL': _cloudinary_url
+}
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
