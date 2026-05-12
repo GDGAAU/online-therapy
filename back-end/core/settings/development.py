@@ -1,10 +1,15 @@
 """Development Settings"""
 from .base import *  # noqa: F401, F403
+import os
 
 DEBUG = True
 
-# Show emails in console during development
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Use console backend when SendGrid is not configured in development.
+EMAIL_BACKEND = (
+    "anymail.backends.sendgrid.EmailBackend"
+    if os.environ.get("SENDGRID_API_KEY")
+    else "django.core.mail.backends.console.EmailBackend"
+)
 
 # Django Debug Toolbar (optional but useful)
 INSTALLED_APPS += ["django_extensions"]  # noqa: F405

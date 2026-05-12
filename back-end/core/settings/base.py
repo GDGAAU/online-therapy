@@ -9,6 +9,7 @@ Environment-specific overrides live in:
 
 from pathlib import Path
 import os
+from urllib.parse import urlparse
 import dj_database_url
 from dotenv import load_dotenv
 import cloudinary
@@ -50,6 +51,7 @@ THIRD_PARTY_APPS = [
     "djoser",
     "corsheaders",
     "drf_spectacular",
+    "anymail",
     "cloudinary_storage",
     "cloudinary",
 ]
@@ -217,6 +219,8 @@ DJOSER = {
     "USER_CREATE_PASSWORD_RETYPE": True,
     "ACTIVATION_URL": "verify-email/{uid}/{token}",
     "PASSWORD_RESET_CONFIRM_URL": "reset-password/{uid}/{token}",
+    "DOMAIN": urlparse(os.environ.get("PUBLIC_APP_URL", "http://localhost:5173")).netloc
+    or os.environ.get("PUBLIC_APP_URL", "localhost:5173"),
     "SERIALIZERS": {
         "user_create": "account.serializers.UserCreateSerializer",
         "user": "account.serializers.UserSerializer",
@@ -224,6 +228,10 @@ DJOSER = {
     },
     "VIEWS": {
         "user_create": "account.views.CustomUserViewSet"
+    },
+    "EMAIL": {
+        "activation": "account.email.CustomActivationEmail",
+        "password_reset": "account.email.CustomPasswordResetEmail",
     },
 }
 
@@ -254,13 +262,21 @@ GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "").strip()
 
 # ─── Email ──────────────────────────────────────────────────
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY", "")
+ANYMAIL = {
+    "SENDGRID_API_KEY": SENDGRID_API_KEY,
+}
+EMAIL_BACKEND = (
+    "anymail.backends.sendgrid.EmailBackend"
+    if SENDGRID_API_KEY
+    else "django.core.mail.backends.smtp.EmailBackend"
+)
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True") == "True"
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@onlinetherapy.com")
+DEFAULT_FROM_EMAIL = os.environ.get("EMAIL_FROM", os.environ.get("DEFAULT_FROM_EMAIL", "noreply@onlinetherapy.com"))
 
 # Frontend URL (for email links)
 FRONTEND_URL = os.environ.get("PUBLIC_APP_URL", "http://localhost:5173")

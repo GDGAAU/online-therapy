@@ -2,6 +2,7 @@ from djoser.email import ActivationEmail, PasswordResetEmail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
 from djoser.conf import settings as djoser_settings
 from urllib.parse import urlparse
 
@@ -21,7 +22,16 @@ def build_frontend_url(path: str):
 
     prefix = "/".join(parts[:-2])
 
-    domain = djoser_settings.DOMAIN
+    domain = getattr(djoser_settings, "DOMAIN", None)
+    if not domain:
+        frontend_url = getattr(settings, "FRONTEND_URL", "")
+        parsed_frontend = urlparse(frontend_url)
+        domain = parsed_frontend.netloc or frontend_url
+
+    if not domain:
+        raise ValueError(
+            "Unable to construct email link: set DJOSER.DOMAIN or PUBLIC_APP_URL/FRONTEND_URL."
+        )
 
     return f"https://{domain}/{prefix}/{uid}/{token}"
 
